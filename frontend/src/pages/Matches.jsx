@@ -1,0 +1,1 @@
+export default function Matches(){ return <div className="card p-6">Matches page</div> }

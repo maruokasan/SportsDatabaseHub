@@ -1,0 +1,1 @@
+export default function Leaderboards(){ return <div className="card p-6">Leaderboards page</div> }

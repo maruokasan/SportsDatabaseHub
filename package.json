@@ -1,0 +1,25 @@
+{
+  "name": "sportsdatabasehub",
+  "version": "1.0.0",
+  "description": "TIC2601 Sports Database Hub for Strategic Planning",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maruokasan/SportsDatabaseHub.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/maruokasan/SportsDatabaseHub/issues"
+  },
+  "homepage": "https://github.com/maruokasan/SportsDatabaseHub#readme",
+  "dependencies": {
+    "better-sqlite3": "^12.2.0",
+    "express": "^5.1.0"
+  }
+}

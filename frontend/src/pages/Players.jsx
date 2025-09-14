@@ -1,0 +1,1 @@
+export default function Players(){ return <div className="card p-6">Players page</div> }

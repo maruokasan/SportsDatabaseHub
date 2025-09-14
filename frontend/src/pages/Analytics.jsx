@@ -1,0 +1,1 @@
+export default function Analytics(){ return <div className="card p-6">Analytics page</div> }

@@ -1,0 +1,1 @@
+export default function Teams(){ return <div className="card p-6">Teams page</div> }

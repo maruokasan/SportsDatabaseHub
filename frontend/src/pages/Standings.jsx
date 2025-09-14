@@ -1,0 +1,1 @@
+export default function Standings(){ return <div className="card p-6">Standings page</div> }

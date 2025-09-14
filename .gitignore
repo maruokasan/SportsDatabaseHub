@@ -53,3 +53,9 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+/backend/database/*.db
+/backend/database/*.db-shm
+/backend/database/*.db-wal
+/prisma/dev.db
+node_modules/
