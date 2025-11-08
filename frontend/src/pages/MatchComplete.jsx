@@ -6,6 +6,7 @@ import { fetchPlayers } from '../api/players';
 import { useAuth } from '../context/AuthContext';
 
 const defaultRow = { playerId: '', minutesPlayed: 90, goals: 0, assists: 0, shotsOnTarget: 0 };
+const EMPTY_PLAYERS = Object.freeze([]);
 
 export default function MatchComplete() {
   const { id } = useParams();
@@ -35,7 +36,7 @@ export default function MatchComplete() {
     }
   });
 
-  const players = playersQuery.data?.data ?? [];
+  const players = playersQuery.data?.data ?? EMPTY_PLAYERS;
   const match = matchQuery.data;
 
   useEffect(() => {
