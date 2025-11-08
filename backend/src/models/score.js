@@ -26,6 +26,12 @@ module.exports = (sequelize) => {
       allowNull: false,
       references: { model: 'players', key: 'id' },
       field: 'player_id'
+    },
+    result: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+      defaultValue: null,
+      comment: 'Numeric outcome indicator used for win-rate analytics'
     }
   }, {
     tableName: 'scores',

@@ -4,7 +4,7 @@ import { Download, MoreHorizontal } from 'lucide-react';
 export default function ChartCard({ title, subtitle, meta, legend = [], onExport, children }) {
   return (
     <section className="flex h-full flex-col rounded-panel border border-shell-border bg-shell-surface p-5 shadow-panel">
-      <header className="mb-4 flex items-start justify-between gap-4">
+      <header className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-text-muted">{subtitle}</p>
           <h3 className="font-display text-xl">{title}</h3>
@@ -14,16 +14,22 @@ export default function ChartCard({ title, subtitle, meta, legend = [], onExport
           <button
             type="button"
             onClick={onExport}
-            className="inline-flex items-center gap-1 rounded-full border border-shell-border px-3 py-1.5 text-xs text-text-muted transition hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-info/60"
+            disabled={!onExport}
+            title="Download this data set"
+            className="inline-flex items-center gap-1 rounded-full border border-shell-border px-3 py-1.5 text-xs text-text-muted transition hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-info/60 disabled:cursor-not-allowed disabled:opacity-50"
+            aria-disabled={!onExport}
           >
             <Download size={14} />
             Export
           </button>
           <button
             type="button"
-            className="grid h-9 w-9 place-items-center rounded-full border border-shell-border text-text-muted transition hover:text-text-primary"
+            className="inline-flex items-center gap-1 rounded-full border border-shell-border px-3 py-1.5 text-xs text-text-muted transition hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-info/60"
+            aria-haspopup="menu"
+            title="More options"
           >
-            <MoreHorizontal size={18} />
+            <MoreHorizontal size={16} />
+            More
           </button>
         </div>
       </header>
@@ -40,7 +46,12 @@ export default function ChartCard({ title, subtitle, meta, legend = [], onExport
                 borderStyle: item.type === 'dashed' ? 'dashed' : 'solid'
               }}
             />
-            {item.label}
+            {item.badge ? (
+              <span className="grid h-6 w-6 place-items-center rounded-full bg-shell-raised text-xs font-semibold uppercase text-text-primary">
+                {item.badge}
+              </span>
+            ) : null}
+            <span className="font-medium text-text-primary">{item.label}</span>
           </div>
         ))}
       </div>

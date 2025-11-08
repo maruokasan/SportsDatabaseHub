@@ -2,12 +2,14 @@ const env = require('./config/env');
 const { sequelize } = require('./models');
 const seedUsers = require('./seeders/seedUsers');
 const seedSampleData = require('./seeders/seedSampleData');
+const runSchemaUpgrades = require('./utils/schemaUpgrades');
 const app = require('./app');
 
 const start = async () => {
   try {
     await sequelize.authenticate();
     await sequelize.sync();
+    await runSchemaUpgrades();
     await seedUsers();
     await seedSampleData();
 

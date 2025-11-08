@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useQueries } from '@tanstack/react-query';
-import { useOutletContext } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { ResponsiveContainer, LineChart as ReLineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { Activity, Users, LineChart as LineChartIcon, Bell, BellRing, Bookmark, BookmarkCheck, UserRound } from 'lucide-react';
 import { fetchMatches } from '../api/matches';
@@ -42,15 +42,23 @@ const SparkCell = ({ series = [] }) => {
   );
 };
 
-const TrendTooltip = ({ active, payload, label }) => {
+const TrendTooltip = ({ active, payload, label, teamBadges = {} }) => {
   if (!active || !payload?.length) return null;
+  const matchLabel = label ?? payload[0]?.payload?.label ?? 'Matchweek';
   return (
     <div className="rounded-panel border border-shell-border bg-shell-surface px-4 py-2 text-sm text-text-primary shadow-panel">
-      <p className="text-xs uppercase tracking-[0.2em] text-text-muted">{label}</p>
+      <p className="text-xs uppercase tracking-[0.2em] text-text-muted">{matchLabel}</p>
       {payload.map((entry) => (
         <div key={entry.dataKey} className="flex items-center justify-between gap-4">
-          <span style={{ color: entry.color }}>{entry.name}</span>
-          <span className="font-medium">{entry.value.toFixed(1)}</span>
+          <span className="flex items-center gap-2 font-medium" style={{ color: entry.color }}>
+            {teamBadges[entry.dataKey] ? (
+              <span className="grid h-6 w-6 place-items-center rounded-full bg-shell-raised text-xs font-bold uppercase text-text-primary">
+                {teamBadges[entry.dataKey]}
+              </span>
+            ) : null}
+            {entry.name}
+          </span>
+          <span className="font-semibold text-text-primary">{Number(entry.value ?? 0).toFixed(2)} pts</span>
         </div>
       ))}
     </div>
@@ -59,6 +67,7 @@ const TrendTooltip = ({ active, payload, label }) => {
 
 export default function Dashboard() {
   const outletContext = useOutletContext();
+  const navigate = useNavigate();
   const { season, tournament } = outletContext ?? {};
 
   const [matchScope, setMatchScope] = useState(scopeOptions[0].value);
@@ -195,13 +204,35 @@ export default function Dashboard() {
   }, [highlightMatch]);
 
   const topTeams = tableRows.slice(0, 2);
+  const getTeamBadge = (name, fallback) => {
+    if (!name) return fallback;
+    return name
+      .split(' ')
+      .filter(Boolean)
+      .map((part) => part[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
+  };
+  const teamBadges = {
+    home: getTeamBadge(topTeams[0]?.teamName, 'H'),
+    away: getTeamBadge(topTeams[1]?.teamName, 'A')
+  };
   const chartSeriesHome = topTeams[0]?.trendSeries ?? [1, 1.2, 1.25, 1.4, 1.5];
   const chartSeriesAway = topTeams[1]?.trendSeries ?? chartSeriesHome.map((value) => Number((value * 0.9).toFixed(2)));
-  const chartData = chartSeriesHome.map((value, index) => ({
-    label: `MW ${index + 1}`,
-    home: value,
-    away: chartSeriesAway[index] ?? chartSeriesAway[chartSeriesAway.length - 1]
-  }));
+  const lastAwaySample =
+    chartSeriesAway.length > 0
+      ? chartSeriesAway[chartSeriesAway.length - 1]
+      : chartSeriesHome[chartSeriesHome.length - 1] ?? chartSeriesHome[0] ?? 0;
+  const chartData = chartSeriesHome.map((value, index) => {
+    const awayValue = chartSeriesAway[index] ?? lastAwaySample ?? value;
+    return {
+      label: `MW ${index + 1}`,
+      home: Number(value.toFixed(2)),
+      away: Number(awayValue.toFixed(2)),
+      badges: teamBadges
+    };
+  });
 
   const focusFilteredRows = focusTeam === 'all' ? tableRows : tableRows.filter((row) => String(row.teamId) === String(focusTeam));
 
@@ -342,7 +373,11 @@ export default function Dashboard() {
                 {notifyButtonLabel}
               </button>
             </div>
-            <button className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white shadow-panel transition hover:translate-y-0.5">
+            <button
+              type="button"
+              onClick={() => navigate('/analytics')}
+              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white shadow-panel transition hover:translate-y-0.5"
+            >
               <LineChartIcon size={16} />
               Open Analytics
             </button>
@@ -399,16 +434,27 @@ export default function Dashboard() {
             subtitle="Trend"
             meta="Line compares the top two teams · solid = home · dashed = away"
             legend={[
-              { label: topTeams[0]?.teamName ?? 'Home form', color: 'var(--team-home)', type: 'solid' },
-              { label: topTeams[1]?.teamName ?? 'Away form', color: 'var(--team-away)', type: 'dashed' }
+              { label: topTeams[0]?.teamName ?? 'Home form', color: 'var(--team-home)', type: 'solid', badge: teamBadges.home },
+              { label: topTeams[1]?.teamName ?? 'Away form', color: 'var(--team-away)', type: 'dashed', badge: teamBadges.away }
             ]}
           >
             <ResponsiveContainer width="100%" height={280}>
               <ReLineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="label" stroke="var(--color-text-muted)" />
-                <YAxis stroke="var(--color-text-muted)" />
-                <Tooltip content={<TrendTooltip />} />
+                <XAxis
+                  dataKey="label"
+                  stroke="var(--color-text-muted)"
+                  tickLine={false}
+                  axisLine={{ stroke: 'var(--color-text-muted)', strokeWidth: 1 }}
+                  tick={{ fill: 'var(--color-text-primary)', fontSize: 12, fontWeight: 600 }}
+                />
+                <YAxis
+                  stroke="var(--color-text-muted)"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: 'var(--color-text-primary)', fontSize: 12, fontWeight: 600 }}
+                />
+                <Tooltip content={<TrendTooltip teamBadges={teamBadges} />} cursor={{ stroke: 'var(--team-home)', strokeWidth: 1 }} />
                 <Line
                   type="monotone"
                   dataKey="home"

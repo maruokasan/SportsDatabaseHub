@@ -79,7 +79,7 @@ export default function Layout() {
         <Outlet context={{ season, tournament }} />
       </main>
       <footer className="border-t border-shell-border/60 py-8 text-center text-sm text-text-muted">
-        © {new Date().getFullYear()} Sports Analytics Hub — Live, Players, Teams, Admin
+        © {new Date().getFullYear()} Sports Analytics Hub - Live Sports Analytics
       </footer>
     </div>
   );
