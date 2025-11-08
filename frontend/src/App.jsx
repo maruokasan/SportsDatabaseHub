@@ -1,29 +1,43 @@
 // src/App.jsx
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Routes, Route } from 'react-router-dom'
-import Layout from './components/Layout'
-import Dashboard from './pages/Dashboard'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Route, Routes } from 'react-router-dom';
+import Layout from './components/Layout';
+import Dashboard from './pages/Dashboard';
+import Matches from './pages/Matches';
+import Teams from './pages/Teams';
+import Players from './pages/Players';
+import Tournaments from './pages/Tournaments';
+import Standings from './pages/Standings';
+import Leaderboards from './pages/Leaderboards';
+import Analytics from './pages/Analytics';
+import NotFound from './pages/NotFound';
+import AdminLogin from './pages/AdminLogin';
+import MatchComplete from './pages/MatchComplete';
+import { AuthProvider } from './context/AuthContext';
 
-// temporary stubs so nav won’t break if you clicked around
-function Stub({ name }) { return <div className="card p-6">{name} page</div> }
-
-const qc = new QueryClient()
+const qc = new QueryClient();
 
 export default function App() {
   return (
     <QueryClientProvider client={qc}>
-      <Layout>
+      <AuthProvider>
         <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/matches" element={<Stub name="Matches" />} />
-          <Route path="/teams" element={<Stub name="Teams" />} />
-          <Route path="/players" element={<Stub name="Players" />} />
-          <Route path="/standings" element={<Stub name="Standings" />} />
-          <Route path="/leaderboards" element={<Stub name="Leaderboards" />} />
-          <Route path="/analytics" element={<Stub name="Analytics" />} />
-          <Route path="/admin/login" element={<Stub name="Admin Login" />} />
+          <Route element={<Layout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/matches" element={<Matches />} />
+            <Route path="/matches/complete/:id" element={<MatchComplete />} />
+            <Route path="/teams" element={<Teams />} />
+            <Route path="/players" element={<Players />} />
+            <Route path="/tournaments" element={<Tournaments />} />
+            <Route path="/standings" element={<Standings />} />
+            <Route path="/leaderboards" element={<Leaderboards />} />
+            <Route path="/analytics" element={<Analytics />} />
+          </Route>
+
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
-      </Layout>
+      </AuthProvider>
     </QueryClientProvider>
-  )
+  );
 }

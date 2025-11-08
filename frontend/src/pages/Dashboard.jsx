@@ -1,79 +1,93 @@
-import { useQuery } from '@tanstack/react-query';
-import { fetchDashboard } from '../api/dashboard';
+import { useQueries } from '@tanstack/react-query';
+import { fetchMatches } from '../api/matches';
+import { fetchGoalsPer90, fetchInjuryBurden, fetchStandings } from '../api/analytics';
 import KPICard from '../components/KPICard';
 import ListTile from '../components/ListTile';
-import TrendChart from '../components/TrendChart';
 import StandingsMini from '../components/StandingsMini';
 
 export default function Dashboard() {
-  const { data, isLoading, error } = useQuery({ queryKey: ['dashboard'], queryFn: fetchDashboard });
+  const [matchesQuery, standingsQuery, goalsQuery, injuryQuery] = useQueries({
+    queries: [
+      {
+        queryKey: ['matches', 'dashboard', { status: 'upcoming' }],
+        queryFn: () => fetchMatches({ status: 'upcoming', page: 1, limit: 5 })
+      },
+      { queryKey: ['analytics', 'standings'], queryFn: fetchStandings },
+      { queryKey: ['analytics', 'goals-per-90'], queryFn: fetchGoalsPer90 },
+      { queryKey: ['analytics', 'injury-burden'], queryFn: fetchInjuryBurden }
+    ]
+  });
 
-  if (isLoading) return <div className="p-6">Loading…</div>;
-  if (error) return <div className="p-6 text-red-600">Failed to load.</div>;
+  const queries = [matchesQuery, standingsQuery, goalsQuery, injuryQuery];
+  const isLoading = queries.some((q) => q.isLoading);
+  const error = queries.find((q) => q.error)?.error;
 
-  const { liveUpcoming, standingsMini, topScorers, topAssists, trend } = data;
+  if (isLoading) return <div className="p-6">Loading dashboard…</div>;
+  if (error) return <div className="p-6 text-red-600">Failed to load dashboard.</div>;
+
+  const liveUpcoming = matchesQuery.data?.data ?? [];
+  const standings = standingsQuery.data ?? [];
+  const goals = goalsQuery.data ?? [];
+  const injuries = injuryQuery.data ?? [];
+  const topGoals = goals.slice(0, 5);
+  const topGoalsPer90 = topGoals[0]?.goalsPer90?.toFixed(2) ?? '0.00';
+  const topGoalsPlayer = topGoals[0]?.name ?? '—';
 
   return (
     <div className="space-y-6">
-      {/* Hero */}
       <section className="card p-6 overflow-hidden relative">
         <div className="absolute inset-0 pointer-events-none opacity-10 bg-[radial-gradient(ellipse_at_top_right,theme(colors.brand.600),transparent_50%),radial-gradient(ellipse_at_bottom_left,theme(colors.purple.400),transparent_50%)]" />
         <div className="relative flex flex-col gap-3">
           <h1 className="font-display text-2xl sm:text-3xl">League Overview</h1>
-          <p className="text-gray-600">Live fixtures, form guide, top performers, and trends at a glance.</p>
+          <p className="text-gray-600">Monitor fixtures, table movement, and player form at a glance.</p>
         </div>
       </section>
 
-      {/* KPI row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="card p-4"><KPICard title="Live/Upcoming" value={liveUpcoming.length} sub="next 5 fixtures" /></div>
-        <div className="card p-4"><KPICard title="Top Scorer Goals" value={topScorers[0]?.Goals ?? 0} sub={topScorers[0]?.FullName ?? '—'} /></div>
-        <div className="card p-4"><KPICard title="Top Assists" value={topAssists[0]?.Assists ?? 0} sub={topAssists[0]?.FullName ?? '—'} /></div>
+        <div className="card p-4">
+          <KPICard title="Upcoming Fixtures" value={liveUpcoming.length} sub="next five matches" />
+        </div>
+        <div className="card p-4">
+          <KPICard title="Teams on Table" value={standings.length} sub="with completed matches" />
+        </div>
+        <div className="card p-4">
+          <KPICard title="Best Goals / 90" value={topGoalsPer90} sub={topGoalsPlayer} />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Left column: Live/Upcoming + Top Scorers + Assists */}
         <div className="space-y-4">
           <div className="card p-4">
             <div className="mb-2 text-sm opacity-70">Live / Upcoming</div>
-            {liveUpcoming.map(m => (
-              <ListTile key={m.MatchID}
-                primary={`${m.HomeTeam} vs ${m.AwayTeam}`}
-                secondary={`${m.Status} • ${new Date(m.StartDateTime).toLocaleString()}`} />
+            {liveUpcoming.map((match) => (
+              <ListTile
+                key={match.id}
+                primary={`${match.homeTeam?.name ?? 'TBD'} vs ${match.awayTeam?.name ?? 'TBD'}`}
+                secondary={`${match.status} • ${new Date(match.matchDate).toLocaleString()}`}
+              />
             ))}
-            {liveUpcoming.length === 0 && <div className="opacity-60 text-sm">No fixtures.</div>}
+            {!liveUpcoming.length && <div className="opacity-60 text-sm">No fixtures scheduled.</div>}
           </div>
 
           <div className="card p-4">
-            <div className="mb-2 text-sm opacity-70">Top Scorers</div>
-            {topScorers.map(p => (
-              <ListTile key={p.PlayerID} primary={p.FullName} secondary={`${p.Goals} goals`} />
+            <div className="mb-2 text-sm opacity-70">Active Injuries</div>
+            {injuries.map((team) => (
+              <ListTile key={team.teamId} primary={team.teamName} secondary={`${team.activeInjuries} players`} />
             ))}
-          </div>
-
-          <div className="card p-4">
-            <div className="mb-2 text-sm opacity-70">Top Assists</div>
-            {topAssists.map(p => (
-              <ListTile key={p.PlayerID} primary={p.FullName} secondary={`${p.Assists} assists`} />
-            ))}
+            {!injuries.length && <div className="text-sm text-gray-500">All squads healthy.</div>}
           </div>
         </div>
 
-        {/* Middle column: Standings mini */}
-        <div className="card p-4"><StandingsMini rows={standingsMini} /></div>
+        <div className="card p-4">
+          <StandingsMini rows={standings} />
+        </div>
 
-        {/* Right column: Trend line */}
-        <div className="card p-4"><TrendChart data={trend} /></div>
-      </div>
-
-      {/* Shortcuts */}
-      <div className="card p-4">
-        <div className="mb-2 text-sm opacity-70">Shortcuts</div>
-        <div className="flex flex-wrap gap-2 text-sm">
-          <a className="px-3 py-2 border rounded-xl" href="/leaderboards">Leaderboards</a>
-          <a className="px-3 py-2 border rounded-xl" href="/standings">Standings</a>
-          <a className="px-3 py-2 border rounded-xl" href="/analytics">Analytics</a>
-          <a className="px-3 py-2 border rounded-xl" href="/matches">Matches</a>
+        <div className="card p-4">
+          <div className="mb-2 text-sm opacity-70">Goals per 90</div>
+          {topGoals.map((row) => (
+            <ListTile key={row.playerId} primary={row.name} secondary={`${row.goalsPer90.toFixed(2)} g/90`} />
+          ))}
+          {!topGoals.length && <div className="text-sm text-gray-500">No stats yet.</div>}
         </div>
       </div>
     </div>

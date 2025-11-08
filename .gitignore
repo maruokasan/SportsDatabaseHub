@@ -59,3 +59,4 @@ dkms.conf
 /backend/database/*.db-wal
 /prisma/dev.db
 node_modules/
+/doc
