@@ -1,7 +1,8 @@
 // src/components/Layout.jsx
 import { useMemo, useState } from 'react';
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { GlobalAppBar } from './ui';
+import PrimaryNav from './PrimaryNav';
 import { useAuth } from '../context/AuthContext';
 
 const seasonOptions = [
@@ -23,6 +24,13 @@ const navTabs = [
   { to: '/teams', label: 'Teams' }
 ];
 
+const routeLabels = {
+  '/': 'Live View',
+  '/analytics': 'Match History & Analytics',
+  '/players': 'Players Directory',
+  '/teams': 'Teams Directory'
+};
+
 export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -35,6 +43,8 @@ export default function Layout() {
     const weekNumber = Math.ceil(((now - new Date(now.getFullYear(), 0, 1)) / 86400000 + now.getDay() + 1) / 7);
     return `Matchweek ${weekNumber.toString().padStart(2, '0')}`;
   }, []);
+
+  const locationDescriptor = routeLabels[location.pathname] ?? 'Browse';
 
   return (
     <div className="min-h-screen bg-shell-base text-text-primary">
@@ -51,29 +61,7 @@ export default function Layout() {
         onLogin={() => navigate('/admin/login')}
       />
 
-      <div className="border-b border-shell-border bg-shell-base/95">
-        <nav className="mx-auto flex max-w-7xl items-center gap-2 px-4 sm:px-6 lg:px-8">
-          {navTabs.map((tab) => (
-            <NavLink
-              key={tab.to}
-              to={tab.to}
-              className={({ isActive }) =>
-                `my-3 inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  isActive
-                    ? 'bg-shell-raised text-text-primary'
-                    : 'text-text-muted hover:text-text-primary hover:bg-shell-surface'
-                }`
-              }
-              end={tab.to === '/'}
-            >
-              {tab.label}
-            </NavLink>
-          ))}
-          <span className="ml-auto text-xs uppercase tracking-[0.2em] text-text-muted">
-            {location.pathname === '/' ? 'Live View' : 'Browse'}
-          </span>
-        </nav>
-      </div>
+      <PrimaryNav tabs={navTabs} locationDescriptor={locationDescriptor} />
 
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
         <Outlet context={{ season, tournament }} />

@@ -21,6 +21,7 @@ import { fetchPlayers } from '../api/players';
 import { fetchTeams } from '../api/teams';
 import { fetchTournaments } from '../api/tournaments';
 import { ChartCard } from '../components/ui';
+import PageHeading from '../components/PageHeading';
 import NationalityHeatmap from '../components/analytics/NationalityHeatmap';
 import SeasonalTrendChart from '../components/analytics/SeasonalTrendChart';
 import StandingsTable from '../components/analytics/StandingsTable';
@@ -282,10 +283,16 @@ export default function Analytics() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-panel border border-shell-border bg-shell-surface px-4 py-3 shadow-panel">
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-text-muted">Filters</p>
+    <div className="space-y-6">
+      <PageHeading
+        eyebrow="History"
+        title="Match History & Analytics"
+        description="Explore trend cards, league tables, and player context for every matchweek."
+      />
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-panel border border-shell-border bg-shell-surface px-4 py-3 shadow-panel">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-text-muted">Filters</p>
           <p className="text-sm text-text-muted">Tweak comparison inputs for the cards below.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -724,35 +731,37 @@ export default function Analytics() {
             <div className="text-sm text-gray-500">No player stats yet.</div>
           )}
           {(careerQuery.data ?? []).length > 0 && (
-            <table className="analytics-table w-full text-sm">
-              <caption className="sr-only">Career averages table — player career stats and per-90 rates</caption>
-              <thead>
-                <tr className="text-left border-b">
-                  <th className="px-4 py-3">Player</th>
-                  <th className="px-4 py-3 text-right">Matches</th>
-                  <th className="px-4 py-3 text-right">Total Goals</th>
-                  <th className="px-4 py-3 text-right">Total Assists</th>
-                  <th className="px-4 py-3 text-right">Total Minutes</th>
-                  <th className="px-4 py-3 text-right">Avg Goals</th>
-                  <th className="px-4 py-3 text-right">Avg Assists</th>
-                  <th className="px-4 py-3 text-right">G/90</th>
-                </tr>
-              </thead>
-              <tbody>
-                {careerQuery.data.slice(0, 8).map((row) => (
-                  <tr key={`${row.playerId}-career`} className="border-b last:border-none">
-                    <td className="px-4 py-3 font-medium">{row.name}</td>
-                    <td className="px-4 py-3 text-right">{row.matches}</td>
-                    <td className="px-4 py-3 text-right">{row.totalGoals}</td>
-                    <td className="px-4 py-3 text-right">{row.totalAssists}</td>
-                    <td className="px-4 py-3 text-right">{row.totalMinutes}</td>
-                    <td className="px-4 py-3 text-right">{row.avgGoals.toFixed(2)}</td>
-                    <td className="px-4 py-3 text-right">{row.avgAssists.toFixed(2)}</td>
-                    <td className="px-4 py-3 text-right font-semibold">{row.goalsPer90.toFixed(2)}</td>
+            <div className="overflow-auto">
+              <table className="analytics-table w-full text-sm">
+                <caption className="sr-only">Career averages table — player career stats and per-90 rates</caption>
+                <thead>
+                  <tr className="text-left border-b">
+                    <th className="px-4 py-3">Player</th>
+                    <th className="px-4 py-3 text-right">Matches</th>
+                    <th className="px-4 py-3 text-right">Total Goals</th>
+                    <th className="px-4 py-3 text-right">Total Assists</th>
+                    <th className="px-4 py-3 text-right">Total Minutes</th>
+                    <th className="px-4 py-3 text-right">Avg Goals</th>
+                    <th className="px-4 py-3 text-right">Avg Assists</th>
+                    <th className="px-4 py-3 text-right">G/90</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {careerQuery.data.slice(0, 8).map((row) => (
+                    <tr key={`${row.playerId}-career`} className="border-b last:border-none">
+                      <td className="px-4 py-3 font-medium">{row.name}</td>
+                      <td className="px-4 py-3 text-right">{row.matches}</td>
+                      <td className="px-4 py-3 text-right">{row.totalGoals}</td>
+                      <td className="px-4 py-3 text-right">{row.totalAssists}</td>
+                      <td className="px-4 py-3 text-right">{row.totalMinutes}</td>
+                      <td className="px-4 py-3 text-right">{row.avgGoals.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right">{row.avgAssists.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right font-semibold">{row.goalsPer90.toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 
@@ -860,6 +869,7 @@ export default function Analytics() {
         </div>
         <InjuryBurdenList data={injuryBurdenQuery.data ?? []} isLoading={injuryBurdenQuery.isLoading} isError={injuryBurdenQuery.isError} />
         <TopScorersTable data={topScorersQuery.data ?? []} isLoading={topScorersQuery.isLoading} isError={topScorersQuery.isError} />
+      </div>
       </div>
     </div>
   );

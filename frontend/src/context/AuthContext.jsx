@@ -1,4 +1,5 @@
 import { createContext, useContext, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { loginRequest } from '../api/auth';
 import api from '../api/client';
 
@@ -20,6 +21,8 @@ export function AuthProvider({ children }) {
     return raw ? JSON.parse(raw) : null;
   });
 
+  const navigate = useNavigate();
+
   const login = async (credentials) => {
     const { email, password } = credentials;
     const res = await loginRequest(email, password);
@@ -32,11 +35,18 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
+    // clear client-side auth state
     localStorage.removeItem(tokenKey);
     localStorage.removeItem(userKey);
     delete api.defaults.headers.common.Authorization;
     setToken(null);
     setUser(null);
+    // redirect to public homepage
+    try {
+      navigate('/');
+    } catch (e) {
+      // no-op if navigation isn't available
+    }
   };
 
   const value = useMemo(() => ({

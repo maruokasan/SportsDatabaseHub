@@ -6,6 +6,7 @@ import { Activity, Users, LineChart as LineChartIcon, Bell, BellRing, Bookmark, 
 import { fetchMatches } from '../api/matches';
 import { fetchGoalsPer90, fetchInjuryBurden, fetchStandings } from '../api/analytics';
 import { FilterBar, StatTile, ChartCard, DataTable, MatchTimeline, InlineAlert, SkeletonBlock } from '../components/ui';
+import PageHeading from '../components/PageHeading';
 import { uiTokens } from '../theme/tokens';
 
 const scopeOptions = [
