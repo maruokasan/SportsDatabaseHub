@@ -35,17 +35,14 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
-    // clear client-side auth state
     localStorage.removeItem(tokenKey);
     localStorage.removeItem(userKey);
     delete api.defaults.headers.common.Authorization;
     setToken(null);
     setUser(null);
-    // redirect to public homepage
     try {
       navigate('/');
     } catch (e) {
-      // no-op if navigation isn't available
     }
   };
 
@@ -60,7 +57,6 @@ export function AuthProvider({ children }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');

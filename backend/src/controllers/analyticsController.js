@@ -1,5 +1,5 @@
-const ApiError = require('../utils/apiError');
-const analyticsService = require('../services/analyticsService');
+const ApiError = require("../utils/apiError");
+const analyticsService = require("../services/analyticsService");
 
 exports.goalsPer90 = async (_req, res, next) => {
   try {
@@ -22,7 +22,8 @@ exports.standings = async (_req, res, next) => {
 exports.headToHead = async (req, res, next) => {
   try {
     const { teamA, teamB } = req.query;
-    if (!teamA || !teamB) throw new ApiError(400, 'teamA and teamB query params required');
+    if (!teamA || !teamB)
+      throw new ApiError(400, "teamA and teamB query params required");
     const data = await analyticsService.headToHead(teamA, teamB);
     res.json(data);
   } catch (err) {
@@ -60,9 +61,10 @@ exports.consistency = async (req, res, next) => {
 exports.playerVsTeam = async (req, res, next) => {
   try {
     const { playerId, teamId } = req.query;
-    if (!playerId || !teamId) throw new ApiError(400, 'playerId and teamId query params required');
+    if (!playerId || !teamId)
+      throw new ApiError(400, "playerId and teamId query params required");
     const data = await analyticsService.playerVsTeam(playerId, teamId);
-    if (!data) throw new ApiError(404, 'Player or team not found');
+    if (!data) throw new ApiError(404, "Player or team not found");
     res.json(data);
   } catch (err) {
     next(err);
@@ -72,8 +74,12 @@ exports.playerVsTeam = async (req, res, next) => {
 exports.topScorers = async (req, res, next) => {
   try {
     const { tournamentId, limit } = req.query;
-    if (!tournamentId) throw new ApiError(400, 'tournamentId query param required');
-    const data = await analyticsService.topScorersByTournament(tournamentId, limit);
+    if (!tournamentId)
+      throw new ApiError(400, "tournamentId query param required");
+    const data = await analyticsService.topScorersByTournament(
+      tournamentId,
+      limit
+    );
     res.json(data);
   } catch (err) {
     next(err);
@@ -116,11 +122,24 @@ exports.playerLoadVsActiveInjuries = async (_req, res, next) => {
   }
 };
 
+exports.nationalityPerformance = async (_req, res, next) => {
+  try {
+    const data = await analyticsService.nationalityPerformance();
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.presenceImpact = async (req, res, next) => {
   try {
     const { playerId, teamId, opponentTeamId } = req.query;
     const matchupTeamId = opponentTeamId || teamId;
-    if (!playerId || !matchupTeamId) throw new ApiError(400, 'playerId and opponentTeamId query params required');
+    if (!playerId || !matchupTeamId)
+      throw new ApiError(
+        400,
+        "playerId and opponentTeamId query params required"
+      );
     const data = await analyticsService.presenceImpact(playerId, matchupTeamId);
     res.json(data);
   } catch (err) {

@@ -85,6 +85,11 @@ export const fetchPlayerLoadVsInjuries = async () => {
   return data;
 };
 
+export const fetchNationalityPerformance = async () => {
+  const { data } = await api.get("/api/v1/analytics/nationality-performance");
+  return data;
+};
+
 export const fetchPresenceImpact = async (params = {}) => {
   const { data } = await api.get("/api/v1/analytics/player-presence-impact", {
     params,

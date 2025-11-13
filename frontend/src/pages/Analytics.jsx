@@ -49,16 +49,12 @@ export default function Analytics() {
   const [opponentTeamId, setOpponentTeamId] = useState('');
   const [isFiltersOpen, setFiltersOpen] = useState(false);
   const [consistencySort, setConsistencySort] = useState({ field: 'avgScore', direction: 'desc' });
-  // Announcers for aria-live polite regions
   const [standingsAnnouncer, setStandingsAnnouncer] = useState('');
   const [consistencyAnnouncer, setConsistencyAnnouncer] = useState('');
 
-  // Accessibility: keep a ref to the element that had focus before opening the filters modal
   const prevFocusRef = useRef(null);
-  // Ref to the filters modal container for focusing and focus-trap
   const filtersModalRef = useRef(null);
 
-  // Open modal: save the currently-focused element then open
   const openFilters = () => {
     try {
       prevFocusRef.current = document.activeElement;
@@ -68,7 +64,6 @@ export default function Analytics() {
     setFiltersOpen(true);
   };
 
-  // Close modal: close and attempt to restore focus to the stored element if still in document
   const closeFilters = () => {
     setFiltersOpen(false);
     try {
@@ -76,12 +71,9 @@ export default function Analytics() {
         prevFocusRef.current.focus();
       }
     } catch (e) {
-      // ignore focus restore errors
     }
   };
 
-  // When modal opens: move focus to first focusable element inside the modal (or the modal itself)
-  // Also install a small Tab/Shift+Tab focus-trap while the modal is open.
   useEffect(() => {
     if (!isFiltersOpen) return;
 
@@ -100,13 +92,11 @@ export default function Analytics() {
       const active = document.activeElement;
       const idx = focusTargets.indexOf(active);
       if (e.shiftKey) {
-        // Shift+Tab: move backward
         if (idx === 0 || idx === -1) {
           e.preventDefault();
           focusTargets[focusTargets.length - 1].focus();
         }
       } else {
-        // Tab: move forward
         if (idx === focusTargets.length - 1 || idx === -1) {
           e.preventDefault();
           focusTargets[0].focus();
@@ -114,7 +104,6 @@ export default function Analytics() {
       }
     };
 
-    // Attach on modal to scope handling, and also document as a fallback
     modal.addEventListener('keydown', handleKeyDown);
     document.addEventListener('keydown', handleKeyDown);
 
@@ -154,19 +143,16 @@ export default function Analytics() {
     queryFn: fetchInjuryBurden
   });
 
-  // Fetch tournaments so we can provide a valid tournamentId to analytics endpoints.
   const tournamentsQuery = useQuery({
     queryKey: ['tournaments', 'all'],
     queryFn: () => fetchTournaments({ limit: 100 })
   });
 
-  // Use selected tournament if present; otherwise fall back to first tournament from list.
   const tournamentId = tournamentsQuery.data?.data?.[0]?.id;
 
   const topScorersQuery = useQuery({
     queryKey: ['analytics', 'top-scorers', tournamentId],
     queryFn: () => fetchTopScorers({ tournamentId, limit: 10 }),
-    // Only run when we have a valid tournamentId to avoid backend 400 errors.
     enabled: Boolean(tournamentId)
   });
 
@@ -251,12 +237,10 @@ export default function Analytics() {
     setConsistencySort((prev) => {
       if (prev.field === field) {
         const newDirection = prev.direction === 'asc' ? 'desc' : 'asc';
-        // aria-live announcer update — no logic change
         setConsistencyAnnouncer(`Sorted by ${field} ${newDirection === 'asc' ? 'ascending' : 'descending'}`);
         return { field, direction: newDirection };
       }
       const defaultDirection = field === 'stdDevScore' ? 'asc' : 'desc';
-      // aria-live announcer update — no logic change
       setConsistencyAnnouncer(`Sorted by ${field} ${defaultDirection === 'asc' ? 'ascending' : 'descending'}`);
       return { field, direction: defaultDirection };
     });

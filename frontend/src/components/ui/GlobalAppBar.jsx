@@ -1,4 +1,3 @@
-// src/components/ui/GlobalAppBar.jsx
 import { useEffect, useRef, useState } from 'react';
 import { ShieldCheck, Bell, PlayCircle, ChevronDown, User, Settings } from 'lucide-react';
 
