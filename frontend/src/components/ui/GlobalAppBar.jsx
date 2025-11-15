@@ -12,7 +12,7 @@ const Select = ({ id, label, value, options = [], onChange }) => (
         className="w-48 appearance-none rounded-chip border border-shell-border bg-shell-surface/60 px-3 py-2 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-info/60"
       >
         {options.map((option) => (
-          <option key={option.value ?? option} value={option.value ?? option}>
+          <option key={option.value ?? option} value={option.value ?? option} disabled={option.disabled}>
             {option.label ?? option}
           </option>
         ))}
@@ -29,6 +29,9 @@ export default function GlobalAppBar({
   tournamentOptions = [],
   selectedTournament,
   onTournamentChange,
+  sportOptions = [],
+  selectedSport,
+  onSportChange,
   onFollowMatch,
   matchweekLabel = 'Matchweek 0',
   user,
@@ -71,6 +74,7 @@ export default function GlobalAppBar({
         </div>
 
         <div className="hidden flex-1 items-center gap-4 lg:flex">
+          <Select id="sport-select" label="Sport" value={selectedSport} onChange={onSportChange} options={sportOptions} />
           <Select id="season-select" label="Season" value={selectedSeason} onChange={onSeasonChange} options={seasonOptions} />
           <Select
             id="tournament-select"

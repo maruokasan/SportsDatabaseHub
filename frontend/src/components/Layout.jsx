@@ -17,16 +17,26 @@ const tournamentOptions = [
   { value: 'continental', label: 'Continental' }
 ];
 
+// Placeholder for future sports selection
+const sportOptions = [
+  { value: 'basketball', label: 'Basketball' },
+  { value: 'baseball', label: 'Baseball' },
+  { value: 'football', label: 'Football' },
+  { value: 'other', label: 'Other (coming soon!)', disabled: true }
+];
+
 const navTabs = [
   { to: '/', label: 'Live' },
-  { to: '/analytics', label: 'History' },
+  { to: '/matches', label: 'Matches' },
+  { to: '/analytics', label: 'Analytics' },
   { to: '/players', label: 'Players' },
   { to: '/teams', label: 'Teams' }
 ];
 
 const routeLabels = {
   '/': 'Live View',
-  '/analytics': 'Match History & Analytics',
+  '/matches': 'Matches Browser',
+  '/analytics': 'Analytics',
   '/players': 'Players Directory',
   '/teams': 'Teams Directory'
 };
@@ -36,6 +46,7 @@ export default function Layout() {
   const navigate = useNavigate();
   const [season, setSeason] = useState(seasonOptions[0].value);
   const [tournament, setTournament] = useState(tournamentOptions[0].value);
+  const [sport, setSport] = useState('basketball');
   const location = useLocation();
 
   const matchweekLabel = useMemo(() => {
@@ -55,6 +66,9 @@ export default function Layout() {
         tournamentOptions={tournamentOptions}
         selectedTournament={tournament}
         onTournamentChange={setTournament}
+        sportOptions={sportOptions}
+        selectedSport={sport}
+        onSportChange={setSport}
         matchweekLabel={matchweekLabel}
         user={user}
         onLogout={logout}
