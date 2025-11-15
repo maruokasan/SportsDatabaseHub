@@ -15,14 +15,18 @@
     "express-validator": "^7.2.1",
     "fast-csv": "^5.0.1",
     "helmet": "^7.1.0",
+    "ioredis": "^5.8.2",
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
+    "redis": "^5.9.0",
     "sequelize": "^6.37.3",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "winston": "^3.18.3"
   },
   "devDependencies": {
+    "baseline-browser-mapping": "^2.8.28",
     "eslint": "^8.57.1",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.29.1",
