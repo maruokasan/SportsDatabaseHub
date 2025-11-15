@@ -18,16 +18,20 @@ const emptyMatchForm = {
 export default function Matches() {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('');
+  const [tournamentId, setTournamentId] = useState('');
+  const [teamId, setTeamId] = useState('');
   const [matchForm, setMatchForm] = useState(emptyMatchForm);
   const queryClient = useQueryClient();
   const { isAuthenticated } = useAuth();
 
   const matchesQuery = useQuery({
-    queryKey: ['matches', { page, status }],
+    queryKey: ['matches', { page, status, tournamentId, teamId }],
     queryFn: () => fetchMatches({
       page,
       limit: 10,
-      status: status || undefined
+      status: status || undefined,
+      tournamentId: tournamentId || undefined,
+      teamId: teamId || undefined
     })
   });
 
@@ -148,6 +152,32 @@ export default function Matches() {
             <option value="upcoming">Upcoming</option>
             <option value="live">Live</option>
             <option value="completed">Completed</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Tournament</label>
+          <select
+            value={tournamentId}
+            onChange={(e) => { setPage(1); setTournamentId(e.target.value); }}
+            className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-600"
+          >
+            <option value="">All Tournaments</option>
+            {tournamentsQuery.data?.data?.map((t) => (
+              <option key={t.id} value={t.id}>{t.name}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Team</label>
+          <select
+            value={teamId}
+            onChange={(e) => { setPage(1); setTeamId(e.target.value); }}
+            className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-600"
+          >
+            <option value="">All Teams</option>
+            {teamsQuery.data?.data?.map((team) => (
+              <option key={team.id} value={team.id}>{team.name}</option>
+            ))}
           </select>
         </div>
       </div>
