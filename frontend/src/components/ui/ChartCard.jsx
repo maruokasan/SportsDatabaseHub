@@ -1,9 +1,41 @@
 // src/components/ui/ChartCard.jsx
 import { Download, MoreHorizontal } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 
 export default function ChartCard({ title, subtitle, meta, legend = [], onExport, children }) {
+  const cardRef = useRef(null);
+  
+  // DEBUG: Log ChartCard rendering and dimensions
+  if (import.meta.env.DEV) {
+    console.log('DEBUG: ChartCard', {
+      title,
+      subtitle,
+      meta,
+      legendLength: legend.length,
+      childrenType: typeof children,
+      children: children?.type?.name || children?.type || 'Unknown'
+    });
+  }
+  
+  useEffect(() => {
+    if (cardRef.current) {
+      const rect = cardRef.current.getBoundingClientRect();
+      if (import.meta.env.DEV) {
+        console.log('DEBUG: ChartCard Dimensions', {
+          width: rect.width,
+          height: rect.height,
+          top: rect.top,
+          bottom: rect.bottom,
+          left: rect.left,
+          right: rect.right,
+          isVisible: rect.top < window.innerHeight && rect.bottom > 0
+        });
+      }
+    }
+  }, [children]);
+  
   return (
-    <section className="flex h-full flex-col rounded-panel border border-shell-border bg-shell-surface p-5 shadow-panel">
+    <section ref={cardRef} className="flex h-full flex-col rounded-panel border border-shell-border bg-shell-surface p-5 shadow-panel">
       <header className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-text-muted">{subtitle}</p>

@@ -16,21 +16,56 @@ const TrendTooltip = ({ active, payload, label }) => {
 };
 
 export default function SeasonalTrendChart({ data = [], isLoading = false, isError = false, bucket = 'month' }) {
+  // DEBUG: Log component props and data processing
+  if (import.meta.env.DEV) {
+    console.log('DEBUG: SeasonalTrendChart', {
+      dataLength: data?.length,
+      isLoading,
+      isError,
+      bucket,
+      data: data?.slice(0, 3) // Log first 3 items
+    });
+  }
+  
   const chartData = (data ?? [])
     .map((row) => ({
       label: row.bucket_label || row.month_bucket,
       avg_result: row.avg_result == null ? null : Number(row.avg_result)
     }))
     .filter((row) => row.label && row.avg_result != null);
+  
+  // DEBUG: Log processed data
+  if (import.meta.env.DEV) {
+    console.log('DEBUG: SeasonalTrendChart Processed', {
+      chartDataLength: chartData.length,
+      chartData: chartData.slice(0, 3),
+      visible: false // Will be updated by IntersectionObserver
+    });
+  }
 
   // IntersectionObserver based lazy-mount: only render heavy chart when visible
   const containerRef = useRef(null);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current) {
+      if (import.meta.env.DEV) console.log('DEBUG: SeasonalTrendChart - No container ref');
+      return;
+    }
+    
+    if (import.meta.env.DEV) console.log('DEBUG: SeasonalTrendChart - Setting up IntersectionObserver');
     const obs = new IntersectionObserver(
       ([entry]) => {
+        if (import.meta.env.DEV) {
+          console.log('DEBUG: SeasonalTrendChart - IntersectionObserver callback', {
+            isIntersecting: entry.isIntersecting,
+            intersectionRatio: entry.intersectionRatio,
+            boundingClientRect: entry.boundingClientRect,
+            rootBounds: entry.rootBounds,
+            target: entry.target
+          });
+        }
+        
         if (entry.isIntersecting) {
           setVisible(true);
           obs.disconnect();

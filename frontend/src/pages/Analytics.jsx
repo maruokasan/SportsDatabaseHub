@@ -199,13 +199,58 @@ export default function Analytics() {
     queryFn: fetchSeasonalTrend
   });
 
+  // DEBUG: Log query states to identify issues
+  if (import.meta.env.DEV) {
+    console.log('DEBUG: Query States', {
+      goalsQuery: goalsQuery.status,
+      loadVsInjuriesQuery: loadVsInjuriesQuery.status,
+      teamsQuery: teamsQuery.status,
+      playersQuery: playersQuery.status,
+      standingsQuery: standingsQuery.status,
+      injuryBurdenQuery: injuryBurdenQuery.status,
+      tournamentsQuery: tournamentsQuery.status,
+      tournamentId: tournamentId,
+      topScorersQuery: topScorersQuery.status,
+      headToHeadQuery: headToHeadQuery.status,
+      careerQuery: careerQuery.status,
+      consistencyQuery: consistencyQuery.status,
+      playerVsTeamQuery: playerVsTeamQuery.status,
+      presenceImpactQuery: presenceImpactQuery.status,
+      winRateQuery: winRateQuery.status,
+      nationalityWinRateQuery: nationalityWinRateQuery.status,
+      seasonalTrendQuery: seasonalTrendQuery.status,
+      teamA, teamB, playerId, opponentTeamId
+    });
+  }
+
   const selectedPlayer = playersQuery.data?.data?.find((player) => player.id === playerId);
   const selectedOpponentTeam = teamsQuery.data?.data?.find((team) => team.id === opponentTeamId);
+  
+  // DEBUG: Log data processing
+  if (import.meta.env.DEV) {
+    console.log('DEBUG: Data Processing', {
+      selectedPlayer: selectedPlayer?.id,
+      selectedOpponentTeam: selectedOpponentTeam?.id,
+      presenceImpactQueryData: presenceImpactQuery.data,
+      presenceImpactQueryStatus: presenceImpactQuery.status,
+      presenceImpactQueryError: presenceImpactQuery.error
+    });
+  }
+  
   const presenceChartData = (presenceImpactQuery.data ?? []).map((row) => ({
     label: row.is_present ? 'With player' : 'Without player',
     avg_result: row.avg_result == null ? 0 : Number(row.avg_result),
     samples: Number(row.samples) || 0
   }));
+  
+  // DEBUG: Log processed data
+  if (import.meta.env.DEV) {
+    console.log('DEBUG: Processed Data', {
+      presenceChartData,
+      hasFiltersApplied: Boolean(teamA || teamB || playerId || opponentTeamId)
+    });
+  }
+  
   const hasFiltersApplied = Boolean(teamA || teamB || playerId || opponentTeamId);
 
   const resetFilters = () => {

@@ -19,6 +19,16 @@ const HeatmapTooltip = ({ active, payload }) => {
 };
 
 export default function NationalityHeatmap({ data = [], isLoading = false, isError = false }) {
+  // DEBUG: Log component props and data processing
+  if (import.meta.env.DEV) {
+    console.log('DEBUG: NationalityHeatmap', {
+      dataLength: data?.length,
+      isLoading,
+      isError,
+      data: data?.slice(0, 3) // Log first 3 items
+    });
+  }
+  
   const sorted = [...(data ?? [])].sort((a, b) => (Number(b.avg_result ?? 0) || 0) - (Number(a.avg_result ?? 0) || 0));
   const chartData = sorted
     .filter((row) => row.avg_result != null)
@@ -29,15 +39,39 @@ export default function NationalityHeatmap({ data = [], isLoading = false, isErr
       n_samples: Number(row.n_samples) || 0
     }));
   const totalSamples = data.reduce((sum, row) => sum + (Number(row.n_samples) || 0), 0);
+  
+  // DEBUG: Log processed data
+  if (import.meta.env.DEV) {
+    console.log('DEBUG: NationalityHeatmap Processed', {
+      chartDataLength: chartData.length,
+      totalSamples,
+      visible: false // Will be updated by IntersectionObserver
+    });
+  }
 
   // IntersectionObserver lazy-mount for heavy chart rendering
   const containerRef = useRef(null);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current) {
+      if (import.meta.env.DEV) console.log('DEBUG: NationalityHeatmap - No container ref');
+      return;
+    }
+    
+    if (import.meta.env.DEV) console.log('DEBUG: NationalityHeatmap - Setting up IntersectionObserver');
     const obs = new IntersectionObserver(
       ([entry]) => {
+        if (import.meta.env.DEV) {
+          console.log('DEBUG: NationalityHeatmap - IntersectionObserver callback', {
+            isIntersecting: entry.isIntersecting,
+            intersectionRatio: entry.intersectionRatio,
+            boundingClientRect: entry.boundingClientRect,
+            rootBounds: entry.rootBounds,
+            target: entry.target
+          });
+        }
+        
         if (entry.isIntersecting) {
           setVisible(true);
           obs.disconnect();
