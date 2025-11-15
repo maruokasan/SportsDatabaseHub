@@ -46,7 +46,7 @@ export default function Layout() {
   const navigate = useNavigate();
   const [season, setSeason] = useState(seasonOptions[0].value);
   const [tournament, setTournament] = useState(tournamentOptions[0].value);
-  const [sport, setSport] = useState('basketball');
+  const [sport, setSport] = useState('football'); // Default selection for now (placeholder)
   const location = useLocation();
 
   const matchweekLabel = useMemo(() => {
