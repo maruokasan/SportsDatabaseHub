@@ -1,4 +1,5 @@
-const { Op, fn, col, literal } = require("sequelize");
+const { Op, fn, col, literal, QueryTypes } = require("sequelize");
+const { sequelize } = require("../models");
 const {
   PlayerMatchStats,
   Player,
@@ -701,6 +702,78 @@ const presenceImpact = async (playerId, opponentTeamId) => {
     .sort((a, b) => Number(b.is_present) - Number(a.is_present));
 };
 
+const getAgeGroupPerformance = async (season, tournamentId) => {
+  const whereClause = {};
+  if (season) whereClause.season = season;
+  if (tournamentId) whereClause.tournamentId = tournamentId;
+
+  // Dialect-aware age and season calculation: PostgreSQL uses AGE/DATE_PART/EXTRACT, SQLite uses julianday/substr
+  const dialect = sequelize.getDialect();
+  const ageExpression =
+    dialect === "postgres"
+      ? "DATE_PART('year', AGE(m.match_date, p.birthdate))"
+      : "CAST((julianday(m.match_date) - julianday(p.birthdate)) / 365.25 AS INTEGER)";
+  const seasonExpression =
+    dialect === "postgres"
+      ? "COALESCE(m.season::text, EXTRACT(YEAR FROM m.match_date)::text)"
+      : "COALESCE(m.season, substr(m.match_date, 1, 4))";
+
+  // Use raw SQL for age calculation and bucketing
+  const sql = `
+    SELECT
+      CASE
+        WHEN p.birthdate IS NULL THEN 'unknown'
+        WHEN ${ageExpression} < 20 THEN '<20'
+        WHEN ${ageExpression} BETWEEN 20 AND 24 THEN '20-24'
+        WHEN ${ageExpression} BETWEEN 25 AND 28 THEN '25-28'
+        WHEN ${ageExpression} >= 29 THEN '29+'
+        ELSE 'unknown'
+      END as age_bucket,
+      AVG(s.result) as avg_performance,
+      COUNT(*) as count
+    FROM scores s
+    JOIN players p ON s.player_id = p.id
+    JOIN matches m ON s.match_id = m.id
+    WHERE s.result IS NOT NULL
+      AND m.status = 'completed'
+      ${season ? `AND ${seasonExpression} = $season` : ""}
+      ${tournamentId ? "AND m.tournament_id = $tournamentId" : ""}
+    GROUP BY age_bucket
+    ORDER BY
+      CASE age_bucket
+        WHEN '<20' THEN 1
+        WHEN '20-24' THEN 2
+        WHEN '25-28' THEN 3
+        WHEN '29+' THEN 4
+        WHEN 'unknown' THEN 5
+      END
+  `;
+
+  const replacements = {};
+  if (season) replacements.season = season;
+  if (tournamentId) replacements.tournamentId = tournamentId;
+
+  const results = await sequelize.query(sql, {
+    replacements,
+    type: QueryTypes.SELECT,
+  });
+
+  const buckets = results.map((row) => ({
+    bucket: row.age_bucket,
+    avgPerformance: Number(row.avg_performance).toFixed(2),
+    count: Number(row.count),
+  }));
+
+  return {
+    buckets,
+    meta: {
+      season: season || null,
+      tournamentId: tournamentId || null,
+      totalSamples: buckets.reduce((sum, b) => sum + b.count, 0),
+    },
+  };
+};
+
 module.exports = {
   goalsPer90,
   standings,
@@ -716,4 +789,5 @@ module.exports = {
   playerVsTeam,
   topScorersByTournament,
   presenceImpact,
+  getAgeGroupPerformance,
 };
