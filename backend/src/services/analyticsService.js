@@ -736,7 +736,7 @@ const getAgeGroupPerformance = async (season, tournamentId) => {
     JOIN matches m ON s.match_id = m.id
     WHERE s.result IS NOT NULL
       AND m.status = 'completed'
-      ${season ? `AND ${seasonExpression} = $season` : ""}
+      ${season ? `AND ${seasonExpression} = '${season}'` : ""}
       ${tournamentId ? "AND m.tournament_id = $tournamentId" : ""}
     GROUP BY age_bucket
     ORDER BY

@@ -64,11 +64,11 @@ const seedSampleData = async () => {
   const [lions, tigers, hawks] = teams;
 
   const [tournament] = await Tournament.findOrCreate({
-    where: { name: "Premier Cup 2025" },
+    where: { name: "Premier Cup 2024" },
     defaults: {
-      name: "Premier Cup 2025",
-      startDate: "2025-06-01",
-      endDate: "2025-09-30",
+      name: "Premier Cup 2024",
+      startDate: "2024-06-01",
+      endDate: "2024-09-30",
     },
   });
 
@@ -152,7 +152,7 @@ const seedSampleData = async () => {
       awayTeamId: tigers.id,
       stadium: "National Stadium",
       referee: "Alex Tan",
-      matchDate: "2025-07-10T12:00:00.000Z",
+      matchDate: "2024-07-10T12:00:00.000Z",
       status: "completed",
       homeScore: 2,
       awayScore: 1,
@@ -163,7 +163,7 @@ const seedSampleData = async () => {
       awayTeamId: hawks.id,
       stadium: "Bukit Jalil",
       referee: "Sakti Noor",
-      matchDate: "2025-07-18T11:00:00.000Z",
+      matchDate: "2024-07-18T11:00:00.000Z",
       status: "completed",
       homeScore: 2,
       awayScore: 2,
@@ -174,7 +174,7 @@ const seedSampleData = async () => {
       awayTeamId: lions.id,
       stadium: "City Arena",
       referee: "Maria Ong",
-      matchDate: "2025-07-25T13:00:00.000Z",
+      matchDate: "2024-07-25T13:00:00.000Z",
       status: "completed",
       homeScore: 0,
       awayScore: 3,
@@ -185,7 +185,7 @@ const seedSampleData = async () => {
       awayTeamId: hawks.id,
       stadium: "National Stadium",
       referee: "Alex Tan",
-      matchDate: "2025-08-01T12:00:00.000Z",
+      matchDate: "2024-08-01T12:00:00.000Z",
       status: "completed",
       homeScore: 1,
       awayScore: 0,
@@ -196,7 +196,7 @@ const seedSampleData = async () => {
       awayTeamId: hawks.id,
       stadium: "National Stadium",
       referee: "Alex Tan",
-      matchDate: "2025-08-12T12:00:00.000Z",
+      matchDate: "2024-08-12T12:00:00.000Z",
       status: "upcoming",
       homeScore: 0,
       awayScore: 0,
@@ -451,14 +451,14 @@ const seedSampleData = async () => {
   const injuries = [
     {
       player: "Daniel Khoo",
-      injuryStart: "2025-07-15",
+      injuryStart: "2024-07-15",
       injuryEnd: null,
       severity: "medium",
     },
     {
       player: "Suryo Pranata",
-      injuryStart: "2025-07-05",
-      injuryEnd: "2025-07-20",
+      injuryStart: "2024-07-05",
+      injuryEnd: "2024-07-20",
       severity: "low",
     },
   ];

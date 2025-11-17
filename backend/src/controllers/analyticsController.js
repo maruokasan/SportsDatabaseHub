@@ -289,6 +289,44 @@ exports.presenceImpact = async (req, res, next) => {
   }
 };
 
+exports.ageGroupPerformance = async (req, res, next) => {
+  try {
+    const { season, tournamentId } = req.query;
+
+    // Validate parameters
+    if (season && (isNaN(season) || season < 2000 || season > 2100)) {
+      throw new ApiError(400, "season must be a valid year");
+    }
+    if (
+      tournamentId &&
+      !/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(
+        tournamentId
+      )
+    ) {
+      throw new ApiError(400, "tournamentId must be a valid UUID");
+    }
+
+    const cacheKey = cacheService.generateKey("analytics:ageGroupPerformance", {
+      season,
+      tournamentId,
+    });
+
+    let data = await cacheService.get(cacheKey);
+    if (!data) {
+      data = await analyticsService.getAgeGroupPerformance(
+        season,
+        tournamentId
+      );
+      // Cache for 5 minutes (short volatility)
+      await cacheService.set(cacheKey, data, 300);
+    }
+
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
 /**
  * Cache invalidation functions for analytics data
  * These should be called when underlying data changes

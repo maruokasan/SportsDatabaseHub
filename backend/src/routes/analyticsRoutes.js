@@ -54,5 +54,10 @@ router.get(
   cacheMiddleware(),
   analyticsController.presenceImpact
 );
+router.get(
+  "/age-group-performance",
+  cacheMiddleware(),
+  analyticsController.ageGroupPerformance
+);
 
 module.exports = router;

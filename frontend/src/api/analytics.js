@@ -96,3 +96,10 @@ export const fetchPresenceImpact = async (params = {}) => {
   });
   return data;
 };
+
+export const fetchAgeGroupPerformance = async (params = {}) => {
+  const { data } = await api.get("/api/v1/analytics/age-group-performance", {
+    params,
+  });
+  return data;
+};

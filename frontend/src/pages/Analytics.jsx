@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState, useRef, useEffect } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { ArrowDown, ArrowUp, ArrowUpDown, Filter, HelpCircle, SlidersHorizontal, Undo2, X } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip } from 'recharts';
 import {
@@ -27,6 +28,7 @@ import SeasonalTrendChart from '../components/analytics/SeasonalTrendChart';
 import StandingsTable from '../components/analytics/StandingsTable';
 import InjuryBurdenList from '../components/analytics/InjuryBurdenList';
 import TopScorersTable from '../components/analytics/TopScorersTable';
+import AgeGroupComparison from '../components/analytics/AgeGroupComparison';
 
 const PresenceImpactTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null;
@@ -43,6 +45,7 @@ const PresenceImpactTooltip = ({ active, payload }) => {
 };
 
 export default function Analytics() {
+  const { season: contextSeason } = useOutletContext();
   const [teamA, setTeamA] = useState('');
   const [teamB, setTeamB] = useState('');
   const [playerId, setPlayerId] = useState('');
@@ -148,12 +151,10 @@ export default function Analytics() {
     queryFn: () => fetchTournaments({ limit: 100 })
   });
 
-  const tournamentId = tournamentsQuery.data?.data?.[0]?.id;
-
   const topScorersQuery = useQuery({
-    queryKey: ['analytics', 'top-scorers', tournamentId],
-    queryFn: () => fetchTopScorers({ tournamentId, limit: 10 }),
-    enabled: Boolean(tournamentId)
+    queryKey: ['analytics', 'top-scorers', tournamentsQuery.data?.data?.[0]?.id],
+    queryFn: () => fetchTopScorers({ tournamentId: tournamentsQuery.data?.data?.[0]?.id, limit: 10 }),
+    enabled: Boolean(tournamentsQuery.data?.data?.[0]?.id)
   });
 
   const headToHeadQuery = useQuery({
@@ -209,7 +210,6 @@ export default function Analytics() {
       standingsQuery: standingsQuery.status,
       injuryBurdenQuery: injuryBurdenQuery.status,
       tournamentsQuery: tournamentsQuery.status,
-      tournamentId: tournamentId,
       topScorersQuery: topScorersQuery.status,
       headToHeadQuery: headToHeadQuery.status,
       careerQuery: careerQuery.status,
@@ -898,6 +898,9 @@ export default function Analytics() {
         </div>
         <InjuryBurdenList data={injuryBurdenQuery.data ?? []} isLoading={injuryBurdenQuery.isLoading} isError={injuryBurdenQuery.isError} />
         <TopScorersTable data={topScorersQuery.data ?? []} isLoading={topScorersQuery.isLoading} isError={topScorersQuery.isError} />
+        <div className="lg:col-span-3">
+          <AgeGroupComparison season={contextSeason?.split('-')[0]} tournaments={tournamentsQuery.data?.data} />
+        </div>
       </div>
       </div>
     </div>
