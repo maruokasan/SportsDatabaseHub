@@ -60,3 +60,21 @@ dkms.conf
 /prisma/dev.db
 node_modules/
 /doc
+/backend/tests/
+
+# System files
+.DS_Store
+
+# Environment files
+.env
+.env.*
+
+# Logs
+logs/
+
+# Tests
+**/__tests__/
+**/tests/
+
+# Lockfiles
+package-lock.json
