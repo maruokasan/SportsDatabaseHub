@@ -21,7 +21,7 @@ import {
 import { fetchPlayers } from '../api/players';
 import { fetchTeams } from '../api/teams';
 import { fetchTournaments } from '../api/tournaments';
-import { ChartCard } from '../components/ui';
+import { ChartCard, DataTable } from '../components/ui';
 import PageHeading from '../components/PageHeading';
 import NationalityHeatmap from '../components/analytics/NationalityHeatmap';
 import SeasonalTrendChart from '../components/analytics/SeasonalTrendChart';
@@ -469,13 +469,13 @@ export default function Analytics() {
           </div>
         </div>
       ) : null}
-      <div className="card p-4">
-        <h2 className="font-display text-2xl mb-3">Head-to-Head</h2>
+      <div className="rounded-panel border border-shell-border bg-shell-surface p-6 shadow-panel">
+        <h2 className="font-display text-xl mb-4">Head-to-Head</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
           <select
             value={teamA}
             onChange={(e) => setTeamA(e.target.value)}
-            className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-600"
+            className="rounded-chip border border-shell-border bg-shell-raised px-3 py-2 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
           >
             <option value="">Select Team A</option>
             {teamsQuery.data?.data?.map((team) => <option key={team.id} value={team.id}>{team.name}</option>)}
@@ -483,45 +483,45 @@ export default function Analytics() {
           <select
             value={teamB}
             onChange={(e) => setTeamB(e.target.value)}
-            className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-600"
+            className="rounded-chip border border-shell-border bg-shell-raised px-3 py-2 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
           >
             <option value="">Select Team B</option>
             {teamsQuery.data?.data?.map((team) => <option key={team.id} value={team.id}>{team.name}</option>)}
           </select>
-          <div className="rounded-xl border px-3 py-2 text-sm flex items-center">
+          <div className="rounded-chip border border-shell-border bg-shell-raised px-3 py-2 text-sm flex items-center">
             {teamA && teamB ? 'Comparison ready' : 'Pick two teams'}
           </div>
         </div>
-        {headToHeadQuery.isLoading && <div>Loading comparison…</div>}
+        {headToHeadQuery.isLoading && <div className="text-sm text-text-muted">Loading comparison…</div>}
         {headToHeadQuery.isFetched && headToHeadQuery.data && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="rounded-2xl border p-4">
-              <div className="text-sm opacity-70 mb-2">Summary</div>
+            <div className="rounded-chip border border-shell-border bg-shell-raised p-4">
+              <div className="text-xs uppercase tracking-[0.2em] text-text-muted mb-2">Summary</div>
               <div className="grid grid-cols-3 gap-2 text-center text-sm">
                 <div>
                   <div className="text-2xl font-display">{headToHeadQuery.data.summary.teamA.wins}</div>
-                  <div>Team A Wins</div>
+                  <div className="text-xs text-text-muted">Team A Wins</div>
                 </div>
                 <div>
                   <div className="text-2xl font-display">{headToHeadQuery.data.summary.teamB.wins}</div>
-                  <div>Team B Wins</div>
+                  <div className="text-xs text-text-muted">Team B Wins</div>
                 </div>
                 <div>
                   <div className="text-2xl font-display">{headToHeadQuery.data.summary.draws}</div>
-                  <div>Draws</div>
+                  <div className="text-xs text-text-muted">Draws</div>
                 </div>
               </div>
             </div>
-            <div className="rounded-2xl border p-4">
-              <div className="text-sm opacity-70 mb-2">Recent Meetings</div>
+            <div className="rounded-chip border border-shell-border bg-shell-raised p-4">
+              <div className="text-xs uppercase tracking-[0.2em] text-text-muted mb-2">Recent Meetings</div>
               <div className="space-y-2 text-sm">
                 {headToHeadQuery.data.details.map((match) => (
                   <div key={match.matchId} className="flex justify-between">
-                    <div>{match.homeTeam} vs {match.awayTeam}</div>
-                    <div className="font-medium">{match.score}</div>
+                    <div className="text-text-primary">{match.homeTeam} vs {match.awayTeam}</div>
+                    <div className="font-medium text-text-primary">{match.score}</div>
                   </div>
                 ))}
-                {!headToHeadQuery.data.details.length && <div>No meetings yet.</div>}
+                {!headToHeadQuery.data.details.length && <div className="text-sm text-text-muted">No meetings yet.</div>}
               </div>
             </div>
           </div>
@@ -529,13 +529,13 @@ export default function Analytics() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="card p-4">
-          <h2 className="font-display text-2xl mb-3">Player vs Opponent Team</h2>
+        <div className="rounded-panel border border-shell-border bg-shell-surface p-6 shadow-panel">
+          <h2 className="font-display text-xl mb-4">Player vs Opponent Team</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
             <select
               value={playerId}
               onChange={(e) => setPlayerId(e.target.value)}
-              className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-600"
+              className="rounded-chip border border-shell-border bg-shell-raised px-3 py-2 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
             >
               <option value="">Select Player</option>
               {playersQuery.data?.data?.map((player) => (
@@ -547,7 +547,7 @@ export default function Analytics() {
             <select
               value={opponentTeamId}
               onChange={(e) => setOpponentTeamId(e.target.value)}
-              className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-600"
+              className="rounded-chip border border-shell-border bg-shell-raised px-3 py-2 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
             >
               <option value="">Select Opponent Team</option>
               {teamsQuery.data?.data?.map((team) => (
@@ -556,39 +556,41 @@ export default function Analytics() {
                 </option>
               ))}
             </select>
-            <div className="rounded-xl border px-3 py-2 text-sm flex items-center">
+            <div className="rounded-chip border border-shell-border bg-shell-raised px-3 py-2 text-sm flex items-center">
               {playerId && opponentTeamId ? 'Ready to compute aggregate' : 'Pick a player and opponent'}
             </div>
           </div>
-          {playerVsTeamQuery.isLoading && <div>Loading matchup aggregates…</div>}
-          {playerVsTeamQuery.isError && <div className="text-sm text-red-600">Failed to load matchup results.</div>}
+          {playerVsTeamQuery.isLoading && <div className="text-sm text-text-muted">Loading matchup aggregates…</div>}
+          {playerVsTeamQuery.isError && <div className="text-sm text-danger">Failed to load matchup results.</div>}
           {!playerVsTeamQuery.isLoading && playerId && opponentTeamId && (!playerVsTeamQuery.data || !playerVsTeamQuery.data.appearances) && (
-            <div className="text-sm text-gray-500">No appearances for that matchup yet.</div>
+            <div className="text-sm text-text-muted">No appearances for that matchup yet.</div>
           )}
           {playerVsTeamQuery.data?.appearances > 0 && (
-            <table className="analytics-table w-full text-sm">
-              <caption className="sr-only">Player vs Opponent table — aggregate points vs selected opponent</caption>
-              <thead>
-                <tr className="text-left border-b">
-                  <th className="px-4 py-3">Player</th>
-                  <th className="px-4 py-3">Opponent</th>
-                  <th className="px-4 py-3 text-right">Goals</th>
-                  <th className="px-4 py-3 text-right">Assists</th>
-                  <th className="px-4 py-3 text-right">Appearances</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="px-4 py-3 font-medium">
-                    {playerVsTeamQuery.data.firstName} {playerVsTeamQuery.data.lastName}
-                  </td>
-                  <td className="px-4 py-3">{playerVsTeamQuery.data.opponentTeamName ?? 'Unknown'}</td>
-                  <td className="px-4 py-3 text-right font-semibold">{Number(playerVsTeamQuery.data.totalGoals ?? 0).toFixed(0)}</td>
-                  <td className="px-4 py-3 text-right font-semibold">{Number(playerVsTeamQuery.data.totalAssists ?? 0).toFixed(0)}</td>
-                  <td className="px-4 py-3 text-right font-semibold">{Number(playerVsTeamQuery.data.appearances ?? 0)}</td>
-                </tr>
-              </tbody>
-            </table>
+            <div className="overflow-auto border rounded">
+              <table className="analytics-table w-full text-sm">
+                <caption className="sr-only">Player vs Opponent table — aggregate points vs selected opponent</caption>
+                <thead>
+                  <tr className="text-left border-b">
+                    <th className="px-4 py-3">Player</th>
+                    <th className="px-4 py-3">Opponent</th>
+                    <th className="px-4 py-3 text-right">Goals</th>
+                    <th className="px-4 py-3 text-right">Assists</th>
+                    <th className="px-4 py-3 text-right">Appearances</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="px-4 py-3 font-medium text-text-primary">
+                      {playerVsTeamQuery.data.firstName} {playerVsTeamQuery.data.lastName}
+                    </td>
+                    <td className="px-4 py-3 text-text-primary">{playerVsTeamQuery.data.opponentTeamName ?? 'Unknown'}</td>
+                    <td className="px-4 py-3 text-right font-semibold text-text-primary">{Number(playerVsTeamQuery.data.totalGoals ?? 0).toFixed(0)}</td>
+                    <td className="px-4 py-3 text-right font-semibold text-text-primary">{Number(playerVsTeamQuery.data.totalAssists ?? 0).toFixed(0)}</td>
+                    <td className="px-4 py-3 text-right font-semibold text-text-primary">{Number(playerVsTeamQuery.data.appearances ?? 0)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 
@@ -612,7 +614,7 @@ export default function Analytics() {
               Computing presence impact…
             </div>
           ) : presenceImpactQuery.isError ? (
-            <div className="flex h-full items-center justify-center text-sm text-red-500">
+            <div className="flex h-full items-center justify-center text-sm text-danger">
               Failed to load presence impact.
             </div>
           ) : !presenceChartData.length ? (
@@ -634,7 +636,7 @@ export default function Analytics() {
               </div>
               <div className="mt-4 grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
                 {presenceChartData.map((row) => (
-                  <div key={`presence-${row.label}`} className="rounded-xl border border-shell-border px-3 py-2">
+                  <div key={`presence-${row.label}`} className="rounded-chip border border-shell-border bg-shell-raised px-3 py-2">
                     <div className="font-semibold text-text-primary">{row.label}</div>
                     <div className="text-xs text-text-muted">{row.samples} matches · Avg {row.avg_result.toFixed(2)}</div>
                   </div>
@@ -645,41 +647,48 @@ export default function Analytics() {
         </ChartCard>
       </div>
 
-      <div className="card p-4">
-        <h2 className="font-display text-2xl mb-3">Goals per 90</h2>
-        {goalsQuery.isLoading && <div>Loading analytics…</div>}
-        {!goalsQuery.isLoading && (goalsQuery.data ?? []).length === 0 && <div className="text-sm text-gray-500">No player stats yet.</div>}
+      <div className="rounded-panel border border-shell-border bg-shell-surface p-6 shadow-panel">
+        <h2 className="font-display text-xl mb-4">Goals per 90</h2>
+        {goalsQuery.isLoading && <div className="text-sm text-text-muted">Loading analytics…</div>}
+        {!goalsQuery.isLoading && (goalsQuery.data ?? []).length === 0 && <div className="text-sm text-text-muted">No player stats yet.</div>}
         {(goalsQuery.data ?? []).length > 0 && (
-          <table className="analytics-table w-full text-sm">
-            <caption className="sr-only">Goals per 90 table — ranking of players by goals and minutes</caption>
-            <thead>
-              <tr className="text-left border-b">
-                <th className="px-4 py-3">Player</th>
-                <th className="px-4 py-3 text-right">Goals</th>
-                <th className="px-4 py-3 text-right">Minutes</th>
-                <th className="px-4 py-3 text-right">G/90</th>
-              </tr>
-            </thead>
-            <tbody>
-              {goalsQuery.data.slice(0, 8).map((row) => (
-                <tr key={`${row.playerId}-analytics`} className="border-b last:border-none">
-                  <td className="px-4 py-3 font-medium">{row.name}</td>
-                  <td className="px-4 py-3 text-right">{row.goals}</td>
-                  <td className="px-4 py-3 text-right">{row.minutes}</td>
-                  <td className="px-4 py-3 text-right font-semibold">{row.goalsPer90.toFixed(2)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <DataTable
+            title="Goals per 90"
+            columns={[
+              {
+                key: 'player',
+                label: 'Player',
+                render: (value, row) => <span className="font-medium text-text-primary">{row.name}</span>
+              },
+              {
+                key: 'goals',
+                label: 'Goals',
+                render: (value, row) => <span className="text-right text-text-primary">{row.goals}</span>
+              },
+              {
+                key: 'minutes',
+                label: 'Minutes',
+                render: (value, row) => <span className="text-right text-text-primary">{row.minutes}</span>
+              },
+              {
+                key: 'goalsPer90',
+                label: 'G/90',
+                render: (value, row) => <span className="text-right font-semibold text-text-primary">{row.goalsPer90.toFixed(2)}</span>
+              }
+            ]}
+            rows={goalsQuery.data.slice(0, 8).map(row => ({ id: `${row.playerId}-analytics`, ...row }))}
+            isLoading={false}
+            emptyState="No player stats yet."
+          />
         )}
       </div>
 
-      <div className="card p-4">
+      <div className="rounded-panel border border-shell-border bg-shell-surface p-6 shadow-panel">
         <h2 className="font-display text-2xl mb-3">Load &amp; Injury Burden (Minutes vs Active Injuries)</h2>
-        {loadVsInjuriesQuery.isLoading && <div>Loading workload metrics…</div>}
-        {loadVsInjuriesQuery.isError && <div className="text-sm text-red-600">Failed to load workload data.</div>}
+        {loadVsInjuriesQuery.isLoading && <div className="text-sm text-text-muted">Loading workload metrics…</div>}
+        {loadVsInjuriesQuery.isError && <div className="text-sm text-danger">Failed to load workload data.</div>}
         {!loadVsInjuriesQuery.isLoading && !loadVsInjuriesQuery.isError && (loadVsInjuriesQuery.data ?? []).length === 0 && (
-          <div className="text-sm text-gray-500">No player workload data yet.</div>
+          <div className="text-sm text-text-muted">No player workload data yet.</div>
         )}
         {!loadVsInjuriesQuery.isLoading && !loadVsInjuriesQuery.isError && (loadVsInjuriesQuery.data ?? []).length > 0 && (
           <div className="overflow-auto border rounded">
@@ -706,35 +715,34 @@ export default function Analytics() {
         )}
       </div>
 
-      <div className="card p-4">
-        <h2 className="font-display text-2xl mb-3">Win Rate by Scores per Player</h2>
-        {winRateQuery.isLoading && <div>Calculating win rates…</div>}
-        {winRateQuery.isError && <div className="text-sm text-red-600">Failed to load player win rates.</div>}
+      <div className="rounded-panel border border-shell-border bg-shell-surface p-6 shadow-panel">
+        <h2 className="font-display text-xl mb-4">Win Rate by Scores per Player</h2>
+        {winRateQuery.isLoading && <div className="text-sm text-text-muted">Calculating win rates…</div>}
+        {winRateQuery.isError && <div className="text-sm text-danger">Failed to load player win rates.</div>}
         {!winRateQuery.isLoading && !winRateQuery.isError && (winRateQuery.data ?? []).length === 0 && (
-          <div className="text-sm text-gray-500">No score records available.</div>
+          <div className="text-sm text-text-muted">No score records available.</div>
         )}
         {!winRateQuery.isLoading && !winRateQuery.isError && (winRateQuery.data ?? []).length > 0 && (
-          <div className="overflow-auto">
-            <table className="w-full text-sm">
-              <caption className="sr-only">Win rate by scores table — avg results per player</caption>
-              <thead>
-                <tr className="text-left border-b">
-                  <th className="py-2">Player</th>
-                  <th className="text-right">Avg Result</th>
-                </tr>
-              </thead>
-              <tbody>
-                {winRateQuery.data.map((row) => (
-                  <tr key={`${row.playerId}-win-rate`} className="border-b last:border-none">
-                    <td className="py-2 font-medium">{row.firstName} {row.lastName}</td>
-                    <td className="text-right font-semibold">
-                      {row.avgResult == null ? '—' : Number(row.avgResult).toFixed(2)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            title="Win Rate by Scores"
+            columns={[
+              {
+                key: 'player',
+                label: 'Player',
+                render: (value, row) => <span className="font-medium text-text-primary">{row.firstName} {row.lastName}</span>
+              },
+              {
+                key: 'avgResult',
+                label: 'Avg Result',
+                render: (value, row) => <span className="text-right font-semibold text-text-primary">
+                  {row.avgResult == null ? '—' : Number(row.avgResult).toFixed(2)}
+                </span>
+              }
+            ]}
+            rows={winRateQuery.data.map(row => ({ id: `${row.playerId}-win-rate`, ...row }))}
+            isLoading={false}
+            emptyState="No score records available."
+          />
         )}
       </div>
 
@@ -752,156 +760,178 @@ export default function Analytics() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="card p-4">
-          <h2 className="font-display text-2xl mb-3">Career Averages</h2>
-          {careerQuery.isLoading && <div>Loading career averages…</div>}
+      <div className="space-y-4">
+        <div className="rounded-panel border border-shell-border bg-shell-surface p-6 shadow-panel">
+          <h2 className="font-display text-xl mb-4">Career Averages</h2>
+          {careerQuery.isLoading && <div className="text-sm text-text-muted">Loading career averages…</div>}
           {!careerQuery.isLoading && (careerQuery.data ?? []).length === 0 && (
-            <div className="text-sm text-gray-500">No player stats yet.</div>
+            <div className="text-sm text-text-muted">No player stats yet.</div>
           )}
           {(careerQuery.data ?? []).length > 0 && (
-            <div className="overflow-auto">
+            <DataTable
+              title="Career Averages"
+              columns={[
+                {
+                  key: 'player',
+                  label: 'Player',
+                  render: (value, row) => <span className="font-medium text-text-primary">{row.name}</span>
+                },
+                {
+                  key: 'matches',
+                  label: 'Matches',
+                  render: (value, row) => <span className="text-right text-text-primary">{row.matches}</span>
+                },
+                {
+                  key: 'totalGoals',
+                  label: 'Total Goals',
+                  render: (value, row) => <span className="text-right text-text-primary">{row.totalGoals}</span>
+                },
+                {
+                  key: 'totalAssists',
+                  label: 'Total Assists',
+                  render: (value, row) => <span className="text-right text-text-primary">{row.totalAssists}</span>
+                },
+                {
+                  key: 'totalMinutes',
+                  label: 'Total Minutes',
+                  render: (value, row) => <span className="text-right text-text-primary">{row.totalMinutes}</span>
+                },
+                {
+                  key: 'avgGoals',
+                  label: 'Avg Goals',
+                  render: (value, row) => <span className="text-right text-text-primary">{row.avgGoals.toFixed(2)}</span>
+                },
+                {
+                  key: 'avgAssists',
+                  label: 'Avg Assists',
+                  render: (value, row) => <span className="text-right text-text-primary">{row.avgAssists.toFixed(2)}</span>
+                },
+                {
+                  key: 'goalsPer90',
+                  label: 'G/90',
+                  render: (value, row) => <span className="text-right font-semibold text-text-primary">{row.goalsPer90.toFixed(2)}</span>
+                }
+              ]}
+              rows={careerQuery.data.slice(0, 8).map(row => ({ id: `${row.playerId}-career`, ...row }))}
+              isLoading={false}
+              emptyState="No player stats yet."
+            />
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-panel border border-shell-border bg-shell-surface p-6 shadow-panel">
+          <h2 className="font-display text-xl mb-4">Consistency</h2>
+          {consistencyQuery.isLoading && <div className="text-sm text-text-muted">Measuring consistency…</div>}
+          {!consistencyQuery.isLoading && (consistencyQuery.data ?? []).length === 0 && (
+            <div className="text-sm text-text-muted">Not enough match data.</div>
+          )}
+          {displayedConsistency.length > 0 && (
+          <>
+            <div className="overflow-auto border rounded">
               <table className="analytics-table w-full text-sm">
-                <caption className="sr-only">Career averages table — player career stats and per-90 rates</caption>
+                <caption className="sr-only">Consistency table — shows player consistency metrics</caption>
                 <thead>
                   <tr className="text-left border-b">
                     <th className="px-4 py-3">Player</th>
-                    <th className="px-4 py-3 text-right">Matches</th>
-                    <th className="px-4 py-3 text-right">Total Goals</th>
-                    <th className="px-4 py-3 text-right">Total Assists</th>
-                    <th className="px-4 py-3 text-right">Total Minutes</th>
-                    <th className="px-4 py-3 text-right">Avg Goals</th>
-                    <th className="px-4 py-3 text-right">Avg Assists</th>
-                    <th className="px-4 py-3 text-right">G/90</th>
+                    <th className="px-4 py-3 text-right" aria-sort={getSortState('samples')}>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleConsistencySort('samples')}
+                          className="inline-flex items-center gap-1 text-sm font-semibold uppercase tracking-wide text-text-muted"
+                        >
+                          Samples
+                          <SortIcon field="samples" />
+                        </button>
+                        <button
+                          type="button"
+                          className="text-text-muted transition hover:text-text-primary"
+                          title="Number of matches contributing to this score."
+                          aria-label="Samples definition"
+                        >
+                          <HelpCircle size={14} />
+                        </button>
+                      </div>
+                    </th>
+                    <th className="px-4 py-3 text-right" aria-sort={getSortState('avgScore')}>
+                      <button
+                        type="button"
+                        onClick={() => handleConsistencySort('avgScore')}
+                        className="inline-flex items-center gap-1 text-sm font-semibold uppercase tracking-wide text-text-muted"
+                      >
+                        Avg Score
+                        <SortIcon field="avgScore" />
+                      </button>
+                    </th>
+                    <th className="px-4 py-3 text-right" aria-sort={getSortState('stdDevScore')}>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleConsistencySort('stdDevScore')}
+                          className="inline-flex items-center gap-1 text-sm font-semibold uppercase tracking-wide text-text-muted"
+                        >
+                          Std Dev
+                          <SortIcon field="stdDevScore" />
+                        </button>
+                        <button
+                          type="button"
+                          className="text-text-muted transition hover:text-text-primary"
+                          title="Shows how volatile the player scores are from match to match."
+                          aria-label="Standard deviation definition"
+                        >
+                          <HelpCircle size={14} />
+                        </button>
+                      </div>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {careerQuery.data.slice(0, 8).map((row) => (
-                    <tr key={`${row.playerId}-career`} className="border-b last:border-none">
-                      <td className="px-4 py-3 font-medium">{row.name}</td>
-                      <td className="px-4 py-3 text-right">{row.matches}</td>
-                      <td className="px-4 py-3 text-right">{row.totalGoals}</td>
-                      <td className="px-4 py-3 text-right">{row.totalAssists}</td>
-                      <td className="px-4 py-3 text-right">{row.totalMinutes}</td>
-                      <td className="px-4 py-3 text-right">{row.avgGoals.toFixed(2)}</td>
-                      <td className="px-4 py-3 text-right">{row.avgAssists.toFixed(2)}</td>
-                      <td className="px-4 py-3 text-right font-semibold">{row.goalsPer90.toFixed(2)}</td>
+                  {displayedConsistency.map((row) => (
+                    <tr
+                      key={`${row.playerId}-consistency`}
+                      className="border-b last:border-none transition hover:bg-shell-base/30 focus-within:bg-shell-base/30"
+                    >
+                      <td className="px-4 py-3 font-medium">
+                        <div className="flex items-center gap-3">
+                          <span className="grid h-9 w-9 place-items-center rounded-full bg-shell-base/70 text-sm font-semibold text-text-primary">
+                            {getPlayerInitials(row.name)}
+                          </span>
+                          <div>
+                            <div className="font-semibold text-text-primary">{row.name}</div>
+                            <p className="text-xs text-text-muted">ID {row.playerId ? String(row.playerId).slice(0, 6) : '—'}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="text-right tabular-nums px-4 py-3 text-text-primary">{row.samples}</td>
+                      <td className="text-right tabular-nums px-4 py-3 text-text-primary">{Number(row.avgScore ?? 0).toFixed(2)}</td>
+                      <td className="text-right tabular-nums px-4 py-3 text-text-primary">{Number(row.stdDevScore ?? 0).toFixed(2)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          )}
-        </div>
-
-        <div className="card p-4">
-          <h2 className="font-display text-2xl mb-3">Consistency</h2>
-          {consistencyQuery.isLoading && <div>Measuring consistency…</div>}
-          {!consistencyQuery.isLoading && (consistencyQuery.data ?? []).length === 0 && (
-            <div className="text-sm text-gray-500">Not enough match data.</div>
-          )}
-          {displayedConsistency.length > 0 && (
-          <>
-            <table className="analytics-table w-full text-sm">
-              <caption className="sr-only">Consistency table — shows player consistency metrics</caption>
-              <thead>
-                <tr className="text-left border-b">
-                  <th className="px-4 py-3">Player</th>
-                  <th className="px-4 py-3 text-right" aria-sort={getSortState('samples')}>
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleConsistencySort('samples')}
-                        className="inline-flex items-center gap-1 text-sm font-semibold uppercase tracking-wide text-text-muted"
-                      >
-                        Samples
-                        <SortIcon field="samples" />
-                      </button>
-                      <button
-                        type="button"
-                        className="text-text-muted transition hover:text-text-primary"
-                        title="Number of matches contributing to this score."
-                        aria-label="Samples definition"
-                      >
-                        <HelpCircle size={14} />
-                      </button>
-                    </div>
-                  </th>
-                  <th className="px-4 py-3 text-right" aria-sort={getSortState('avgScore')}>
-                    <button
-                      type="button"
-                      onClick={() => handleConsistencySort('avgScore')}
-                      className="inline-flex items-center gap-1 text-sm font-semibold uppercase tracking-wide text-text-muted"
-                    >
-                      Avg Score
-                      <SortIcon field="avgScore" />
-                    </button>
-                  </th>
-                  <th className="px-4 py-3 text-right" aria-sort={getSortState('stdDevScore')}>
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleConsistencySort('stdDevScore')}
-                        className="inline-flex items-center gap-1 text-sm font-semibold uppercase tracking-wide text-text-muted"
-                      >
-                        Std Dev
-                        <SortIcon field="stdDevScore" />
-                      </button>
-                      <button
-                        type="button"
-                        className="text-text-muted transition hover:text-text-primary"
-                        title="Shows how volatile the player scores are from match to match."
-                        aria-label="Standard deviation definition"
-                      >
-                        <HelpCircle size={14} />
-                      </button>
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {displayedConsistency.map((row) => (
-                  <tr
-                    key={`${row.playerId}-consistency`}
-                    className="border-b last:border-none transition hover:bg-shell-base/30 focus-within:bg-shell-base/30"
-                  >
-                    <td className="px-4 py-3 font-medium">
-                      <div className="flex items-center gap-3">
-                        <span className="grid h-9 w-9 place-items-center rounded-full bg-shell-base/70 text-sm font-semibold text-text-primary">
-                          {getPlayerInitials(row.name)}
-                        </span>
-                        <div>
-                          <div className="font-semibold text-text-primary">{row.name}</div>
-                          <p className="text-xs text-text-muted">ID {row.playerId ? String(row.playerId).slice(0, 6) : '—'}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="text-right tabular-nums px-4 py-3">{row.samples}</td>
-                    <td className="text-right tabular-nums px-4 py-3">{Number(row.avgScore ?? 0).toFixed(2)}</td>
-                    <td className="text-right tabular-nums px-4 py-3">{Number(row.stdDevScore ?? 0).toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
             <div id="analytics-consistency-announcer" aria-live="polite" className="sr-only">
               {consistencyAnnouncer}
             </div>
           </>
         )}
-        </div>
       </div>
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        <StandingsTable data={standingsQuery.data ?? []} isLoading={standingsQuery.isLoading} isError={standingsQuery.isError} />
-        <div id="analytics-standings-announcer" aria-live="polite" className="sr-only">
-          {standingsAnnouncer}
+        <div className="rounded-panel border border-shell-border bg-shell-surface p-6 shadow-panel">
+          <StandingsTable data={standingsQuery.data ?? []} isLoading={standingsQuery.isLoading} isError={standingsQuery.isError} />
+          <div id="analytics-standings-announcer" aria-live="polite" className="sr-only">
+            {standingsAnnouncer}
+          </div>
         </div>
-        <InjuryBurdenList data={injuryBurdenQuery.data ?? []} isLoading={injuryBurdenQuery.isLoading} isError={injuryBurdenQuery.isError} />
-        <TopScorersTable data={topScorersQuery.data ?? []} isLoading={topScorersQuery.isLoading} isError={topScorersQuery.isError} />
-        <div className="lg:col-span-3">
+        <div className="rounded-panel border border-shell-border bg-shell-surface p-6 shadow-panel">
+          <InjuryBurdenList data={injuryBurdenQuery.data ?? []} isLoading={injuryBurdenQuery.isLoading} isError={injuryBurdenQuery.isError} />
+        </div>
+        <div className="rounded-panel border border-shell-border bg-shell-surface p-6 shadow-panel">
+          <TopScorersTable data={topScorersQuery.data ?? []} isLoading={topScorersQuery.isLoading} isError={topScorersQuery.isError} />
+        </div>
+        <div className="lg:col-span-3 rounded-panel border border-shell-border bg-shell-surface p-6 shadow-panel">
           <AgeGroupComparison season={contextSeason?.split('-')[0]} tournaments={tournamentsQuery.data?.data} />
         </div>
-      </div>
       </div>
     </div>
   );

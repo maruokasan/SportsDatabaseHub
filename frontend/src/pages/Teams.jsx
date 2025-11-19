@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { createTeam, deleteTeam, fetchTeams, updateTeam } from '../api/teams';
 import { useAuth } from '../context/AuthContext';
+import { DataTable, FilterBar } from '../components/ui';
+import PageHeading from '../components/PageHeading';
 
 const emptyTeam = { name: '', city: '', country: '', logoUrl: '' };
 
@@ -72,139 +74,235 @@ export default function Teams() {
     deleteMutation.mutate(id);
   };
 
+  // Prepare filter data for FilterBar
+  const filters = useMemo(() => [
+    {
+      id: 'search',
+      label: 'Search',
+      icon: null,
+      value: search,
+      onChange: (value) => { setPage(1); setSearch(value); },
+      options: []
+    }
+  ], [search]);
+
+  const activeFilters = useMemo(() => [
+    ...(search ? [{ id: 'search', label: `Search: ${search}`, onRemove: () => { setPage(1); setSearch(''); } }] : [])
+  ], [search]);
+
+  const handleClearAllFilters = () => {
+    setPage(1);
+    setSearch('');
+  };
+
+  // Prepare table columns for DataTable
+  const tableColumns = useMemo(() => [
+    {
+      key: 'name',
+      label: 'Name',
+      render: (value, team) => (
+        <div className="font-medium text-text-primary">
+          {team.name}
+        </div>
+      )
+    },
+    {
+      key: 'city',
+      label: 'City',
+      render: (value, team) => (
+        <span className="text-text-muted">{team.city || '—'}</span>
+      )
+    },
+    {
+      key: 'country',
+      label: 'Country',
+      render: (value, team) => (
+        <span className="text-text-muted">{team.country || '—'}</span>
+      )
+    },
+    {
+      key: 'actions',
+      label: '',
+      align: 'right',
+      render: (value, team) => (
+        <div className="flex justify-end space-x-2">
+          {isAuthenticated ? (
+            <>
+              <button
+                type="button"
+                onClick={() => startEdit(team)}
+                className="inline-flex items-center gap-1 rounded-chip border border-shell-border bg-shell-raised px-2 py-1 text-xs text-text-muted transition hover:border-accent hover:text-accent"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDelete(team.id)}
+                className="inline-flex items-center gap-1 rounded-chip border border-shell-border bg-shell-raised px-2 py-1 text-xs text-text-muted transition hover:border-danger hover:text-danger"
+              >
+                Delete
+              </button>
+            </>
+          ) : (
+            <span className="text-xs text-text-muted">Admin only</span>
+          )}
+        </div>
+      )
+    }
+  ], [isAuthenticated, deleteMutation]);
+
+  const tableRows = useMemo(() => teams.map((team) => ({
+    id: team.id,
+    ...team
+  })), [teams]);
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      <PageHeading
+        eyebrow="Organization"
+        title="Team Management"
+        description="Add, edit, and manage team profiles across the league."
+      />
+
+      {/* Team Management Form */}
       {isAuthenticated ? (
-        <div className="card p-4">
-          <h3 className="font-display text-lg mb-3">{editingId ? 'Edit Team' : 'Add Team'}</h3>
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <input
-                placeholder="Team name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-                className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-600"
-              />
-              <input
-                placeholder="City"
-                value={formData.city}
-                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-600"
-              />
+        <section className="rounded-panel border border-shell-border bg-shell-surface p-6 shadow-panel">
+          <header className="mb-4">
+            <h3 className="font-display text-lg text-text-primary">
+              {editingId ? 'Edit Team' : 'Add Team'}
+            </h3>
+            <p className="text-sm text-text-muted">
+              {editingId ? 'Update team information' : 'Create a new team profile'}
+            </p>
+          </header>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-text-primary">
+                  Team Name
+                </label>
+                <input
+                  placeholder="Team name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                  className="rounded-chip border border-shell-border bg-shell-raised px-3 py-2 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-text-primary">
+                  City
+                </label>
+                <input
+                  placeholder="City"
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  className="rounded-chip border border-shell-border bg-shell-raised px-3 py-2 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+                />
+              </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <input
-                placeholder="Country"
-                value={formData.country}
-                onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-600"
-              />
-              <input
-                placeholder="Logo URL"
-                value={formData.logoUrl}
-                onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
-                className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-600"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-text-primary">
+                  Country
+                </label>
+                <input
+                  placeholder="Country"
+                  value={formData.country}
+                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                  className="rounded-chip border border-shell-border bg-shell-raised px-3 py-2 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-text-primary">
+                  Logo URL
+                </label>
+                <input
+                  placeholder="Logo URL"
+                  value={formData.logoUrl}
+                  onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
+                  className="rounded-chip border border-shell-border bg-shell-raised px-3 py-2 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+                />
+              </div>
             </div>
-            {saveMutation.error && <div className="text-sm text-red-600">Failed to save team.</div>}
-            <div className="flex gap-2">
+            {saveMutation.error && (
+              <div className="rounded-chip border border-danger/20 bg-danger/5 px-3 py-2 text-sm text-danger">
+                Failed to save team. Please try again.
+              </div>
+            )}
+            <div className="flex items-center gap-3">
               <button
                 type="submit"
-                className="px-4 py-2 rounded-xl bg-brand-600 text-white disabled:opacity-70"
+                className="inline-flex items-center gap-2 rounded-chip bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent/90"
                 disabled={saveMutation.isLoading}
               >
                 {saveMutation.isLoading ? 'Saving…' : editingId ? 'Update Team' : 'Create Team'}
               </button>
               {editingId && (
-                <button type="button" className="px-4 py-2 rounded-xl border" onClick={resetForm}>
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="inline-flex items-center gap-2 rounded-chip border border-shell-border bg-shell-raised px-4 py-2 text-sm font-medium text-text-primary transition hover:border-accent hover:text-accent"
+                >
                   Cancel
                 </button>
               )}
             </div>
           </form>
-        </div>
+        </section>
       ) : (
-        <div className="card p-4 text-sm text-gray-600">
-          Sign in as an admin to add or edit team records. Existing teams remain visible below.
-        </div>
+        <section className="rounded-panel border border-shell-border bg-shell-surface p-6 shadow-panel">
+          <div className="flex items-center gap-3 text-text-muted">
+            <div className="grid h-10 w-10 place-items-center rounded-full bg-shell-base/70">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+              </svg>
+            </div>
+            <p className="text-sm">
+              Sign in as an admin to add/edit team records. Team list below remains public.
+            </p>
+          </div>
+        </section>
       )}
 
-      <div>
-        <label className="block text-sm font-medium mb-1">Search</label>
-        <input
-          value={search}
-          onChange={(e) => { setPage(1); setSearch(e.target.value); }}
-          className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-600"
-          placeholder="Club name, city, or country"
-        />
-      </div>
+      {/* Filters */}
+      <FilterBar
+        filters={filters}
+        activeFilters={activeFilters}
+        onClear={handleClearAllFilters}
+      />
 
-      <div className="card p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display text-xl">Teams</h2>
-          <div className="text-sm text-gray-500">Page {meta.page} / {meta.totalPages}</div>
-        </div>
-        {isLoading && <div>Loading teams…</div>}
-        {error && <div className="text-red-600 text-sm">Failed to load teams.</div>}
-        {!isLoading && !teams.length && <div className="text-sm text-gray-500">No teams found.</div>}
-        {teams.length > 0 && (
-          <div className="overflow-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left border-b">
-                  <th className="py-2">Name</th>
-                  <th>City</th>
-                  <th>Country</th>
-                  <th className="text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {teams.map((team) => (
-                  <tr key={team.id} className="border-b last:border-none">
-                    <td className="py-2 font-medium">{team.name}</td>
-                    <td>{team.city || '—'}</td>
-                    <td>{team.country || '—'}</td>
-                    <td className="text-right space-x-2">
-                      {isAuthenticated ? (
-                        <>
-                          <button type="button" className="text-xs text-brand-700" onClick={() => startEdit(team)}>
-                            Edit
-                          </button>
-                          <button type="button" className="text-xs text-red-600" onClick={() => handleDelete(team.id)}>
-                            Delete
-                          </button>
-                        </>
-                      ) : (
-                        <span className="text-xs text-gray-400">Admin only</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* Teams Table */}
+      <DataTable
+        title="Teams"
+        columns={tableColumns}
+        rows={tableRows}
+        isLoading={isLoading}
+        emptyState="No teams found matching your search criteria."
+      />
+        <div className="flex items-center justify-between rounded-panel border border-shell-border bg-shell-surface px-6 py-4 shadow-panel">
+          <div className="text-sm text-text-muted">
+            Showing page {meta.page} of {meta.totalPages} • {meta.totalPages === 1 ? teams.length : 'Multiple'} team{meta.totalPages === 1 && teams.length === 1 ? '' : 's'}
           </div>
-        )}
-        {deleteError && <div className="text-sm text-red-600 mt-3">{deleteError}</div>}
-        <div className="flex justify-between items-center mt-4 text-sm">
-          <button
-            type="button"
-            className="px-3 py-1 rounded-xl border disabled:opacity-50"
-            disabled={meta.page <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-          >
-            Previous
-          </button>
-          <button
-            type="button"
-            className="px-3 py-1 rounded-xl border disabled:opacity-50"
-            disabled={meta.page >= meta.totalPages}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Next
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 rounded-chip border border-shell-border bg-shell-raised px-4 py-2 text-sm font-medium text-text-primary transition hover:border-accent hover:text-accent"
+              disabled={meta.page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 rounded-chip border border-shell-border bg-shell-raised px-4 py-2 text-sm font-medium text-text-primary transition hover:border-accent hover:text-accent"
+              disabled={meta.page >= meta.totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
 }

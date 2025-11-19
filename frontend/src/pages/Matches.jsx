@@ -1,10 +1,32 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Calendar, MapPin, Users, Trophy, Clock, Play, CheckCircle } from 'lucide-react';
 import { createMatch, fetchMatches } from '../api/matches';
 import { fetchTeams } from '../api/teams';
 import { fetchTournaments } from '../api/tournaments';
 import { useAuth } from '../context/AuthContext';
+import { DataTable } from '../components/ui';
+import { FilterBar } from '../components/ui';
+
+// Status badge component
+const StatusBadge = ({ status }) => {
+  const statusConfig = {
+    upcoming: { icon: Clock, color: 'text-info', bg: 'bg-info/10', label: 'Upcoming' },
+    live: { icon: Play, color: 'text-warning', bg: 'bg-warning/10', label: 'Live' },
+    completed: { icon: CheckCircle, color: 'text-success', bg: 'bg-success/10', label: 'Completed' }
+  };
+
+  const config = statusConfig[status] || statusConfig.upcoming;
+  const Icon = config.icon;
+
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${config.color} ${config.bg}`}>
+      <Icon size={12} />
+      {config.label}
+    </span>
+  );
+};
 
 const emptyMatchForm = {
   tournamentId: '',
@@ -61,193 +83,309 @@ export default function Matches() {
   };
 
 
+  // Prepare filter data for FilterBar
+  const filters = [
+    {
+      id: 'status',
+      label: 'Status',
+      icon: Trophy,
+      value: status,
+      onChange: (value) => { setPage(1); setStatus(value); },
+      options: [
+        { value: '', label: 'All Statuses' },
+        { value: 'upcoming', label: 'Upcoming' },
+        { value: 'live', label: 'Live' },
+        { value: 'completed', label: 'Completed' }
+      ]
+    },
+    {
+      id: 'tournament',
+      label: 'Tournament',
+      icon: Trophy,
+      value: tournamentId,
+      onChange: (value) => { setPage(1); setTournamentId(value); },
+      options: [
+        { value: '', label: 'All Tournaments' },
+        ...(tournamentsQuery.data?.data?.map((t) => ({ value: t.id, label: t.name })) || [])
+      ]
+    },
+    {
+      id: 'team',
+      label: 'Team',
+      icon: Users,
+      value: teamId,
+      onChange: (value) => { setPage(1); setTeamId(value); },
+      options: [
+        { value: '', label: 'All Teams' },
+        ...(teamsQuery.data?.data?.map((team) => ({ value: team.id, label: team.name })) || [])
+      ]
+    }
+  ];
+
+  const activeFilters = [
+    ...(status ? [{ id: 'status', label: `Status: ${status}`, onRemove: () => { setPage(1); setStatus(''); } }] : []),
+    ...(tournamentId ? [{ id: 'tournament', label: `Tournament: ${tournamentsQuery.data?.data?.find(t => t.id === tournamentId)?.name}`, onRemove: () => { setPage(1); setTournamentId(''); } }] : []),
+    ...(teamId ? [{ id: 'team', label: `Team: ${teamsQuery.data?.data?.find(t => t.id === teamId)?.name}`, onRemove: () => { setPage(1); setTeamId(''); } }] : [])
+  ];
+
+  // Prepare table data for DataTable
+  const tableColumns = [
+    {
+      key: 'fixture',
+      label: 'Fixture',
+      render: (value, match) => (
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <div className="flex flex-col items-center">
+              <span className="text-sm font-medium text-text-primary">{match.homeTeam?.name ?? 'TBD'}</span>
+              <span className="text-xs text-text-muted">vs</span>
+              <span className="text-sm font-medium text-text-primary">{match.awayTeam?.name ?? 'TBD'}</span>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'tournament',
+      label: 'Tournament',
+      render: (value, match) => (
+        <span className="text-sm text-text-primary">{match.tournament?.name ?? '—'}</span>
+      )
+    },
+    {
+      key: 'datetime',
+      label: 'Date & Time',
+      render: (value, match) => (
+        <div className="flex items-center gap-2 text-sm text-text-primary">
+          <Calendar size={14} className="text-text-muted" />
+          {new Date(match.matchDate).toLocaleDateString()}
+          <Clock size={14} className="text-text-muted ml-2" />
+          {new Date(match.matchDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </div>
+      )
+    },
+    {
+      key: 'venue',
+      label: 'Venue',
+      render: (value, match) => (
+        <div className="flex items-center gap-2 text-sm text-text-primary">
+          <MapPin size={14} className="text-text-muted" />
+          {match.stadium || '—'}
+        </div>
+      )
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (value, match) => <StatusBadge status={match.status} />
+    },
+    {
+      key: 'actions',
+      label: '',
+      align: 'right',
+      render: (value, match) => (
+        <div className="flex justify-end">
+          {match.status !== 'completed' && (
+            isAuthenticated ? (
+              <Link
+                to={`/matches/complete/${match.id}`}
+                className="inline-flex items-center gap-1 rounded-full border border-accent px-3 py-1.5 text-xs font-medium text-accent transition hover:bg-accent hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              >
+                Complete Match
+              </Link>
+            ) : (
+              <span className="text-xs text-text-muted">Admin only</span>
+            )
+          )}
+        </div>
+      )
+    }
+  ];
+
+  const tableRows = matches.map((match) => ({
+    id: match.id,
+    ...match
+  }));
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Schedule Match Form */}
       {isAuthenticated ? (
-        <div className="card p-4">
-          <h3 className="font-display text-lg mb-3">Schedule Match</h3>
-          <form onSubmit={handleCreateMatch} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <select
-              required
-              value={matchForm.tournamentId}
-              onChange={(e) => setMatchForm({ ...matchForm, tournamentId: e.target.value })}
-              className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-600"
-            >
-              <option value="">Tournament</option>
-              {tournamentsQuery.data?.data?.map((t) => (
-                <option key={t.id} value={t.id}>{t.name}</option>
-              ))}
-            </select>
-            <input
-              type="datetime-local"
-              required
-              value={matchForm.matchDate}
-              onChange={(e) => setMatchForm({ ...matchForm, matchDate: e.target.value })}
-              className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-600"
-            />
-            <select
-              required
-              value={matchForm.homeTeamId}
-              onChange={(e) => setMatchForm({ ...matchForm, homeTeamId: e.target.value })}
-              className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-600"
-            >
-              <option value="">Home team</option>
-              {teamsQuery.data?.data?.map((team) => (
-                <option key={team.id} value={team.id}>{team.name}</option>
-              ))}
-            </select>
-            <select
-              required
-              value={matchForm.awayTeamId}
-              onChange={(e) => setMatchForm({ ...matchForm, awayTeamId: e.target.value })}
-              className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-600"
-            >
-              <option value="">Away team</option>
-              {teamsQuery.data?.data?.map((team) => (
-                <option key={team.id} value={team.id}>{team.name}</option>
-              ))}
-            </select>
-            <input
-              placeholder="Stadium"
-              value={matchForm.stadium}
-              onChange={(e) => setMatchForm({ ...matchForm, stadium: e.target.value })}
-              className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-600"
-            />
-            <input
-              placeholder="Referee"
-              value={matchForm.referee}
-              onChange={(e) => setMatchForm({ ...matchForm, referee: e.target.value })}
-              className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-600"
-            />
-            {createMatchMutation.error && <div className="text-sm text-red-600">Failed to create match.</div>}
-            <div className="md:col-span-2 flex gap-2">
+        <section className="rounded-panel border border-shell-border bg-shell-surface p-6 shadow-panel">
+          <header className="mb-4">
+            <h3 className="font-display text-lg text-text-primary">Schedule New Match</h3>
+            <p className="text-sm text-text-muted">Create a new match fixture</p>
+          </header>
+          <form onSubmit={handleCreateMatch} className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="space-y-2">
+              <label className="block text-xs font-medium uppercase tracking-wide text-text-muted">
+                Tournament
+              </label>
+              <select
+                required
+                value={matchForm.tournamentId}
+                onChange={(e) => setMatchForm({ ...matchForm, tournamentId: e.target.value })}
+                className="w-full rounded-chip border border-shell-border bg-shell-raised px-3 py-2 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              >
+                <option value="">Select Tournament</option>
+                {tournamentsQuery.data?.data?.map((t) => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-medium uppercase tracking-wide text-text-muted">
+                Match Date & Time
+              </label>
+              <input
+                type="datetime-local"
+                required
+                value={matchForm.matchDate}
+                onChange={(e) => setMatchForm({ ...matchForm, matchDate: e.target.value })}
+                className="w-full rounded-chip border border-shell-border bg-shell-raised px-3 py-2 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-medium uppercase tracking-wide text-text-muted">
+                Home Team
+              </label>
+              <select
+                required
+                value={matchForm.homeTeamId}
+                onChange={(e) => setMatchForm({ ...matchForm, homeTeamId: e.target.value })}
+                className="w-full rounded-chip border border-shell-border bg-shell-raised px-3 py-2 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              >
+                <option value="">Select Home Team</option>
+                {teamsQuery.data?.data?.map((team) => (
+                  <option key={team.id} value={team.id}>{team.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-medium uppercase tracking-wide text-text-muted">
+                Away Team
+              </label>
+              <select
+                required
+                value={matchForm.awayTeamId}
+                onChange={(e) => setMatchForm({ ...matchForm, awayTeamId: e.target.value })}
+                className="w-full rounded-chip border border-shell-border bg-shell-raised px-3 py-2 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              >
+                <option value="">Select Away Team</option>
+                {teamsQuery.data?.data?.map((team) => (
+                  <option key={team.id} value={team.id}>{team.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-medium uppercase tracking-wide text-text-muted">
+                Stadium
+              </label>
+              <input
+                placeholder="Enter stadium name"
+                value={matchForm.stadium}
+                onChange={(e) => setMatchForm({ ...matchForm, stadium: e.target.value })}
+                className="w-full rounded-chip border border-shell-border bg-shell-raised px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-medium uppercase tracking-wide text-text-muted">
+                Referee
+              </label>
+              <input
+                placeholder="Enter referee name"
+                value={matchForm.referee}
+                onChange={(e) => setMatchForm({ ...matchForm, referee: e.target.value })}
+                className="w-full rounded-chip border border-shell-border bg-shell-raised px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              />
+            </div>
+
+            {createMatchMutation.error && (
+              <div className="md:col-span-2 lg:col-span-3 rounded-chip border border-danger/20 bg-danger/5 p-3 text-sm text-danger">
+                Failed to create match. Please try again.
+              </div>
+            )}
+
+            <div className="md:col-span-2 lg:col-span-3 flex items-center gap-4">
               <button
                 type="submit"
-                className="px-4 py-2 rounded-xl bg-brand-600 text-white disabled:opacity-70"
+                className="inline-flex items-center gap-2 rounded-chip bg-accent px-6 py-2.5 text-sm font-medium text-white transition hover:bg-accent/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={createMatchMutation.isLoading || matchForm.homeTeamId === matchForm.awayTeamId}
               >
                 {createMatchMutation.isLoading ? 'Scheduling…' : 'Schedule Match'}
               </button>
-              {matchForm.homeTeamId === matchForm.awayTeamId && (
-                <div className="text-sm text-red-600 flex items-center">Teams must be different.</div>
+              {matchForm.homeTeamId === matchForm.awayTeamId && matchForm.homeTeamId && (
+                <div className="text-sm text-danger flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-danger"></span>
+                  Home and away teams must be different
+                </div>
               )}
             </div>
           </form>
-        </div>
+        </section>
       ) : (
-        <div className="card p-4 text-sm text-gray-600">
-          Sign in as an admin to schedule or complete matches. Upcoming fixtures remain visible below.
-        </div>
+        <section className="rounded-panel border border-shell-border bg-shell-surface p-6 shadow-panel">
+          <div className="flex items-center gap-3 text-text-muted">
+            <Users size={20} />
+            <p className="text-sm">
+              Sign in as an admin to schedule or complete matches. Upcoming fixtures remain visible below.
+            </p>
+          </div>
+        </section>
       )}
 
-      <div className="flex gap-3 items-end">
-        <div>
-          <label className="block text-sm font-medium mb-1">Status</label>
-          <select
-            value={status}
-            onChange={(e) => { setPage(1); setStatus(e.target.value); }}
-            className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-600"
-          >
-            <option value="">All</option>
-            <option value="upcoming">Upcoming</option>
-            <option value="live">Live</option>
-            <option value="completed">Completed</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Tournament</label>
-          <select
-            value={tournamentId}
-            onChange={(e) => { setPage(1); setTournamentId(e.target.value); }}
-            className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-600"
-          >
-            <option value="">All Tournaments</option>
-            {tournamentsQuery.data?.data?.map((t) => (
-              <option key={t.id} value={t.id}>{t.name}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Team</label>
-          <select
-            value={teamId}
-            onChange={(e) => { setPage(1); setTeamId(e.target.value); }}
-            className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-600"
-          >
-            <option value="">All Teams</option>
-            {teamsQuery.data?.data?.map((team) => (
-              <option key={team.id} value={team.id}>{team.name}</option>
-            ))}
-          </select>
-        </div>
-      </div>
+      {/* Filters */}
+      <FilterBar
+        filters={filters}
+        activeFilters={activeFilters}
+        onClear={() => {
+          setPage(1);
+          setStatus('');
+          setTournamentId('');
+          setTeamId('');
+        }}
+      />
 
-      <div className="card p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display text-xl">Matches</h2>
-          <div className="text-sm text-gray-500">Page {meta.page} / {meta.totalPages}</div>
-        </div>
-        {matchesQuery.isLoading && <div>Loading matches…</div>}
-        {matchesQuery.error && <div className="text-red-600 text-sm">Failed to load matches.</div>}
-        {!matchesQuery.isLoading && !matches.length && <div className="text-sm text-gray-500">No matches found.</div>}
-        {matches.length > 0 && (
-          <div className="overflow-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left border-b">
-                  <th className="py-2">Fixture</th>
-                  <th>Tournament</th>
-                  <th>Date</th>
-                  <th>Status</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {matches.map((match) => (
-                  <tr key={match.id} className="border-b last:border-none">
-                    <td className="py-2 font-medium">
-                      {match.homeTeam?.name ?? 'TBD'} vs {match.awayTeam?.name ?? 'TBD'}
-                    </td>
-                    <td>{match.tournament?.name ?? '—'}</td>
-                    <td>{new Date(match.matchDate).toLocaleString()}</td>
-                    <td className="capitalize">{match.status}</td>
-                    <td className="text-right">
-                      {match.status !== 'completed' && (
-                        isAuthenticated ? (
-                          <Link to={`/matches/complete/${match.id}`} className="text-xs text-brand-700">
-                            Complete
-                          </Link>
-                        ) : (
-                          <span className="text-xs text-gray-400">Admin only</span>
-                        )
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* Matches Table */}
+      <DataTable
+        title="Matches"
+        columns={tableColumns}
+        rows={tableRows}
+        isLoading={matchesQuery.isLoading}
+        emptyState="No matches found matching your filters."
+      />
+
+      {/* Pagination */}
+      {matches.length > 0 && (
+        <div className="flex items-center justify-between rounded-panel border border-shell-border bg-shell-surface px-6 py-4 shadow-panel">
+          <div className="text-sm text-text-muted">
+            Showing page {meta.page} of {meta.totalPages}
           </div>
-        )}
-        <div className="flex justify-between items-center mt-4 text-sm">
-          <button
-            type="button"
-            className="px-3 py-1 rounded-xl border disabled:opacity-50"
-            disabled={meta.page <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-          >
-            Previous
-          </button>
-          <button
-            type="button"
-            className="px-3 py-1 rounded-xl border disabled:opacity-50"
-            disabled={meta.page >= meta.totalPages}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Next
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 rounded-chip border border-shell-border bg-shell-raised px-4 py-2 text-sm font-medium text-text-primary transition hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={meta.page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 rounded-chip border border-shell-border bg-shell-raised px-4 py-2 text-sm font-medium text-text-primary transition hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={meta.page >= meta.totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Next
+            </button>
+          </div>
         </div>
-      </div>
-
+      )}
     </div>
   );
 }
